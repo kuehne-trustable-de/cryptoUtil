@@ -6,11 +6,19 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.Principal;
 import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
+import java.util.Calendar;
+import java.util.Date;
 
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DLSequence;
@@ -47,14 +55,15 @@ public class CryptoUtilTest {
   @Before
   public void setUp() throws Exception {
     JCAManager.getInstance();
-    
+
+    cryptoUtil = new CryptoUtil();
+
     keyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
     
     issuer = new X500Name("CN=test root " + System.currentTimeMillis() + ", O=trustable Ltd, C=DE");
 
-    issuingCertificate = CryptoUtil.buildSelfsignedCertificate(issuer, keyPair);
+    issuingCertificate = cryptoUtil.buildSelfsignedCertificate(issuer, keyPair);
     
-    cryptoUtil = new CryptoUtil();
   }
 
   @After
@@ -199,22 +208,67 @@ public class CryptoUtilTest {
    * @throws CRMFException 
    */
 	@Test
-	public final void testCMPCertificateRequest() throws IOException,
-			GeneralSecurityException, CRMFException, CMPException {
+	public final void testCertificateSigning() throws GeneralSecurityException, IOException {
 
-		final ASN1Primitive derObject = cryptoUtil.getDERObject(Base64
-				.decode(TestData.ValidCMPCertificateRequestBase64));
-		final PKIMessage pkiMessageReq = PKIMessage.getInstance(derObject);
+		KeyPair localKeyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+		
+	    X500Name subject = new X500Name("CN=Test certificate created at " + System.currentTimeMillis() + ", O=trustable Ltd,OU=ca3s, OU=Dev, C=DE");
 
-		byte[] cmpResp = cryptoUtil.handleCMPRequest("alias", "",
-				Base64.decode(TestData.ValidCMPCertificateRequestBase64),
-				issuingCertificate, issuer, keyPair);
+		X509Certificate issuedCertificate = cryptoUtil.issueCertificate(issuer, keyPair, 
+	    		subject, 
+	    		localKeyPair.getPublic().getEncoded(),
+	    		Calendar.HOUR, 2);
 
-		assertNotNull("Expected a byte array as cmp response", cmpResp);
-		assertTrue("Expected a byte array as cmp response",
-				cmpResp.length > 1234);
+		assertNotNull("Expected an issued certificate", issuedCertificate);
+		
+		Principal certSubject = issuedCertificate.getSubjectDN();
+		assertNotNull("Expected a subject in the certificate", certSubject);
+		assertTrue("Expected a subject ", certSubject.getName().startsWith("C=DE, OU=Dev, OU=ca3s, O=trustable Ltd, CN=Test certificate created at" ));
+		
+		assertNotNull("Expected an issuer in the certificate", issuedCertificate.getIssuerDN());
+		
+		long validityMilliSec = issuedCertificate.getNotAfter().getTime() - issuedCertificate.getNotBefore().getTime();
+		assertEquals("Expected a validity of two hours", 2L * 3600L * 1000L, validityMilliSec);
 
+		try {
+			issuedCertificate.checkValidity(new Date());
+		}catch( GeneralSecurityException gse) {
+			fail("Expecting the certificate to be valid now!");
+		}
+		
+		try {
+			issuedCertificate.verify(keyPair.getPublic());
+		}catch( GeneralSecurityException gse) {
+			fail("Expecting the certificate to be valid now!");
+		}
+		
 	}
+
+	  /**
+	   * @throws IOException 
+	   * @throws GeneralSecurityException 
+	   * @throws CMPException 
+	   * @throws CRMFException 
+	   */
+		@Test
+		public final void testCMPCertificateRequest() throws IOException,
+				GeneralSecurityException, CRMFException, CMPException {
+
+			final ASN1Primitive derObject = cryptoUtil.getDERObject(Base64
+					.decode(TestData.ValidCMPCertificateRequestBase64));
+			
+			final PKIMessage pkiMessageReq = PKIMessage.getInstance(derObject);
+			assertNotNull("Expected a non-null PKIMessage", pkiMessageReq);
+
+			byte[] cmpResp = cryptoUtil.handleCMPRequest("alias", "",
+					Base64.decode(TestData.ValidCMPCertificateRequestBase64),
+					issuingCertificate, issuer, keyPair);
+
+			assertNotNull("Expected a byte array as cmp response", cmpResp);
+			assertTrue("Expected a byte array as cmp response",
+					cmpResp.length > 1234);
+
+		}
 
   /**
    * @throws IOException 
@@ -236,4 +290,42 @@ public class CryptoUtilTest {
     
   }
   
+  @Test
+	public final void testIssueCertificate() throws Exception{
+
+		int validityPeriodType = Calendar.HOUR;
+		int validityPeriod = 1;
+
+		KeyPair localKeyPair = KeyPairGenerator.getInstance("RSA").generateKeyPair();
+		InetAddress ip = InetAddress.getLocalHost();
+		String hostname = ip.getHostName();
+
+		X500Name subject = new X500Name("CN=" + hostname);
+
+		X509Certificate x509Cert = cryptoUtil.issueCertificate(issuer, keyPair, subject,
+				localKeyPair.getPublic().getEncoded(), validityPeriodType, validityPeriod);
+		
+		assertNotNull(x509Cert);
+		assertNotNull(x509Cert.getSubjectDN());
+		assertNotNull(x509Cert.getSubjectDN().getName());
+		assertEquals(subject.toString(), x509Cert.getSubjectDN().getName());
+		
+		x509Cert.checkValidity(new Date());
+		
+		try {
+			x509Cert.checkValidity(new Date( System.currentTimeMillis() - (3600L * 1000L)));
+			fail("CertificateNotYetValidException expected");
+		}catch(CertificateNotYetValidException cnyve) {
+			// as expected
+		}
+		
+		try {
+			x509Cert.checkValidity(new Date( System.currentTimeMillis() + (2L * 3600L * 1000L)));
+			fail("CertificateExpiredException expected");
+		}catch(CertificateExpiredException cee) {
+			// as expected
+		}
+		
+	}
+
 }

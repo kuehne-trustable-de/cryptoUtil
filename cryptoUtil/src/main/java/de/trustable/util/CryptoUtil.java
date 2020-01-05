@@ -23,6 +23,8 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import javax.security.auth.x500.X500Principal;
@@ -77,6 +79,7 @@ import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.cmp.CMPException;
@@ -105,6 +108,7 @@ import org.bouncycastle.util.encoders.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.puppetlabs.ssl_utils.ExtensionsUtils;
 
 
 public class CryptoUtil {
@@ -364,7 +368,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
           throw new GeneralSecurityException("Parsing of CSR failed! Not PEM encoded?");
             }
             
-            LOGGER.debug("PemParser returned: " + parsedObj);
+//            LOGGER.debug("PemParser returned: " + parsedObj);
             
             if (parsedObj instanceof PKCS10CertificationRequest) {
                 csr = (PKCS10CertificationRequest) parsedObj;
@@ -413,7 +417,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
           throw new GeneralSecurityException("Parsing of PublicKey failed! Not PEM encoded?");
             }
             
-            LOGGER.info("PemParser returned: " + parsedObj);
+//            LOGGER.info("PemParser returned: " + parsedObj);
             
             if (parsedObj instanceof PublicKey ) {
                 pubKey = (PublicKey) parsedObj;
@@ -458,7 +462,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 	 * @return
 	 * @throws GeneralSecurityException
 	 */
-	public X509Certificate convertPemToCertificate(final String pem)
+	public static X509Certificate convertPemToCertificate(final String pem)
 			throws GeneralSecurityException {
 
 		X509Certificate cert = null;
@@ -540,7 +544,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 						"Parsing of certificate failed! Not PEM encoded?");
 			}
 
-			LOGGER.debug("PemParser returned: " + parsedObj);
+//			LOGGER.debug("PemParser returned: " + parsedObj);
 
 			if (parsedObj instanceof PrivateKeyInfo) {
 				privKey = new JcaPEMKeyConverter().setProvider("BC")
@@ -621,8 +625,17 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
             PrivateKey priKey, 
             char[] password)
             throws GeneralSecurityException, IOException {
+    	
+    	return getCsr(subject,pubKey, priKey, password,null);
+    }
+    
+    public static PKCS10CertificationRequest getCsr(X500Principal subject,
+                PublicKey pubKey, 
+                PrivateKey priKey, 
+                char[] password,
+                List<Map<String, Object>> extensions)
+                throws GeneralSecurityException, IOException {
       
-        DERPrintableString cpSet = new DERPrintableString(new String(password));
         SubjectPublicKeyInfo pkInfo = SubjectPublicKeyInfo.getInstance(pubKey
                 .getEncoded());
 
@@ -638,7 +651,15 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
         PKCS10CertificationRequestBuilder builder = new PKCS10CertificationRequestBuilder(
                 X500Name.getInstance(subject.getEncoded()), pkInfo);
-        builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_challengePassword, cpSet);
+        if( password != null) {
+	        DERPrintableString cpSet = new DERPrintableString(new String(password));
+	        builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_challengePassword, cpSet);
+        }
+        
+        if ((extensions != null) && (extensions.size() > 0)) {
+            Extensions parsedExts = ExtensionsUtils.getExtensionsObjFromMap(extensions);
+            builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, parsedExts);
+          }
 
         ExtensionsGenerator extensionsGenerator = new ExtensionsGenerator();
         extensionsGenerator.addExtension(Extension.extendedKeyUsage, false, new ExtendedKeyUsage(KeyPurposeId.id_kp_eapOverLAN));
@@ -900,7 +921,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 		return macCalculator;
 	}
 
-	public static X509Certificate buildSelfsignedCertificate(
+	public X509Certificate buildSelfsignedCertificate(
 			final X500Name issuer, final KeyPair keyPair)
 			throws NoSuchAlgorithmException, IOException, CertificateException {
 
@@ -1107,35 +1128,12 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
       }
     }
 
-    X500Name subject = new X500Name("CN=test cert " + System.currentTimeMillis() + ", O=trustable Ltd, C=DE");
+//    X500Name subject = new X500Name("CN=test cert " + System.currentTimeMillis() + ", O=trustable Ltd, C=DE");
 
-    Date dateOfIssuing = new Date();              // time from which certificate is valid
-    Calendar expiryCal = Calendar.getInstance();
-    expiryCal.add(Calendar.YEAR, 1);             // time after which certificate is not valid
-    Date dateOfExpiry = expiryCal.getTime();
-    
-
-    BigInteger serialNumber = BigInteger.valueOf( new Random().nextLong()).abs();
-    
-    LOGGER.debug("certification request for subject '" + certTemplate.getSubject() + "'");
-    
-    X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(issuer, 
-        serialNumber, 
-        dateOfIssuing, dateOfExpiry,
-        certTemplate.getSubject(),
-        SubjectPublicKeyInfo.getInstance( certTemplate.getPublicKey().getEncoded()));
-    
-//    certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
-
-//    KeyUsage usage = new KeyUsage(KeyUsage.keyCertSign | KeyUsage.digitalSignature | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.cRLSign);
-    KeyUsage usage = new KeyUsage( KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.dataEncipherment | KeyUsage.keyEncipherment );
-    certBuilder.addExtension(Extension.keyUsage, false, usage);
-
-    certBuilder.addExtension(Extension.authorityKeyIdentifier, false, new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(keyPair.getPublic()) );
-    byte[] certBytes = certBuilder.build(new JCESigner(keyPair.getPrivate())).getEncoded();
-    
-    CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-    X509Certificate issuedCertificate = (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(certBytes));
+    X509Certificate issuedCertificate = issueCertificate(issuer, keyPair, 
+    		certTemplate.getSubject(), 
+    		certTemplate.getPublicKey().getEncoded(),
+    		Calendar.YEAR, 1);
 
     
     CMPCertificate cmpCert = new CMPCertificate( org.bouncycastle.asn1.x509.Certificate.getInstance(getDERObject(issuedCertificate.getEncoded())));
@@ -1154,7 +1152,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
     CertRepMessage certRepMessage = new CertRepMessage(caPubs, certResponseArr);
     
     // get a builder
-	ProtectedPKIMessageBuilder pbuilder = getPKIResponseBuilder(issuer, subject, pkiMessageIn.getHeader());
+	ProtectedPKIMessageBuilder pbuilder = getPKIResponseBuilder(issuer, certTemplate.getSubject(), pkiMessageIn.getHeader());
 
     // create the body
     PKIBody pkiBody = new PKIBody(PKIBody.TYPE_CERT_REP, certRepMessage); // certificate response
@@ -1171,6 +1169,50 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 
     return pkiMessage.getEncoded();
   }
+
+
+	/**
+	 * @param issuer
+	 * @param issuerKeyPair
+	 * @param certTemplate
+	 * @return
+	 * @throws IOException
+	 * @throws CertIOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws CertificateException
+	 */
+	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair, final X500Name subject, final byte[] issuerPKByteArr, int validityPeriodType, int validityPeriod)
+			throws NoSuchAlgorithmException, CertificateException, IOException {
+		
+		Date dateOfIssuing = new Date();              // time from which certificate is valid
+		Calendar expiryCal = Calendar.getInstance();
+		expiryCal.add(validityPeriodType, validityPeriod);             // time after which certificate is not valid
+		Date dateOfExpiry = expiryCal.getTime();
+		
+
+		BigInteger serialNumber = BigInteger.valueOf( new Random().nextLong()).abs();
+		
+		LOGGER.debug("certification request for subject '" + subject + "'");
+		
+		X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(issuer, 
+		    serialNumber, 
+		    dateOfIssuing, dateOfExpiry,
+		    subject,
+		    SubjectPublicKeyInfo.getInstance(issuerPKByteArr));
+		
+//    certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+
+//    KeyUsage usage = new KeyUsage(KeyUsage.keyCertSign | KeyUsage.digitalSignature | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.cRLSign);
+		KeyUsage usage = new KeyUsage( KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.dataEncipherment | KeyUsage.keyEncipherment );
+		certBuilder.addExtension(Extension.keyUsage, false, usage);
+
+		certBuilder.addExtension(Extension.authorityKeyIdentifier, false, new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(issuerKeyPair.getPublic()) );
+		byte[] certBytes = certBuilder.build(new JCESigner(issuerKeyPair.getPrivate())).getEncoded();
+		
+		CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+		X509Certificate issuedCertificate = (X509Certificate)certificateFactory.generateCertificate(new ByteArrayInputStream(certBytes));
+		return issuedCertificate;
+	}
   
   /**
    * 
