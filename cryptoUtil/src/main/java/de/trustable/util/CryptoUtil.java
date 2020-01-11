@@ -15,6 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
@@ -1453,12 +1454,12 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
    * @throws GeneralSecurityException
    */
   private void handleCMPError(final PKIBody body)
-      throws GeneralSecurityException {
+      throws UnrecoverableEntryException {
 	  
     ErrorMsgContent errMsgContent = ErrorMsgContent.getInstance(body.getContent());
     String errMsg = "errMsg : #" + errMsgContent.getErrorCode() + " "
         + errMsgContent.getErrorDetails() + " / "
-        + errMsgContent.getPKIStatusInfo().getFailInfo();
+        + errMsgContent.getPKIStatusInfo().getStatusString().toString();
     
     LOGGER.info(errMsg);
 
@@ -1473,7 +1474,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
     	// just ignore
     }
 
-    throw new GeneralSecurityException(errMsg);
+    throw new UnrecoverableEntryException(errMsg);
   }
 
   /**
