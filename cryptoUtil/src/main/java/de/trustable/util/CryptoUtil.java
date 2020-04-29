@@ -206,6 +206,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 			throws IOException, GeneralSecurityException {
 
 		Pkcs10RequestHolder reqHolder = new Pkcs10RequestHolder();
+		
 		reqHolder.setP10Req(p10Request);
 
 		X500Name subject = reqHolder.getP10Req().getSubject();
@@ -214,7 +215,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 		reqHolder.setSubject(subject.toString());
 
 		reqHolder.setReqAttributes(reqHolder.getP10Req().getAttributes());
-
+		
 		String signingAlgorithm = reqHolder.getP10Req().getSignatureAlgorithm().getAlgorithm().getId();
 		reqHolder.setSigningAlgorithm(signingAlgorithm);
 		reqHolder.setSigningAlgorithmName(OidNameMapper.lookupOid(signingAlgorithm));
@@ -266,6 +267,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
 		return reqHolder;
 	}
+
 
   /**
    * 
@@ -708,6 +710,8 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
       revReason = Integer.parseInt(revocationReasonStr);
     } catch (NumberFormatException nfe) {
 
+//		LOGGER.info("crlReasonFromString for '" + revocationReasonStr + "'", nfe);
+
       if ("keyCompromise".equalsIgnoreCase(revocationReasonStr)) {
         revReason = CRLReason.keyCompromise;
       } else if ("cACompromise".equalsIgnoreCase(revocationReasonStr)) {
@@ -922,31 +926,21 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 		return macCalculator;
 	}
 
+	/**
+	 * @deprecated
+	 * 
+	 * @param issuer
+	 * @param keyPair
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 * @throws IOException
+	 * @throws CertificateException
+	 */
 	public X509Certificate buildSelfsignedCertificate(
 			final X500Name issuer, final KeyPair keyPair)
 			throws NoSuchAlgorithmException, IOException, CertificateException {
 
-		Date dateOfIssuing = new Date(); // time from which certificate is valid
-		Calendar expiryCal = Calendar.getInstance();
-		expiryCal.add(Calendar.YEAR, 1); // time after which certificate is not
-											// valid
-		Date dateOfExpiry = expiryCal.getTime();
-
-		BigInteger serialNumber = BigInteger.ONE;
-
-		X509v3CertificateBuilder certBuilder = new X509v3CertificateBuilder(
-				issuer, serialNumber, dateOfIssuing, dateOfExpiry, issuer,
-				SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
-
-	    certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
-
-	    KeyUsage usage = new KeyUsage(KeyUsage.keyCertSign | KeyUsage.digitalSignature | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.cRLSign);
-	    certBuilder.addExtension(Extension.keyUsage, false, usage);
-
-		byte[] certBytes = certBuilder.build(new JCESigner(keyPair.getPrivate())).getEncoded();
-		CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-		X509Certificate certificate = 
-				(X509Certificate) certificateFactory.generateCertificate(new ByteArrayInputStream(certBytes));
+		X509Certificate certificate = issueCertificate(issuer, keyPair, issuer, keyPair.getPublic().getEncoded(), Calendar.YEAR, 1, PKILevel.ROOT);
 
 		return certificate;
 	}
@@ -1185,6 +1179,48 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair, final X500Name subject, final byte[] issuerPKByteArr, int validityPeriodType, int validityPeriod)
 			throws NoSuchAlgorithmException, CertificateException, IOException {
 		
+		return issueCertificate(issuer, issuerKeyPair, subject, SubjectPublicKeyInfo.getInstance(issuerPKByteArr), validityPeriodType, validityPeriod, PKILevel.END_ENTITY);
+
+	}
+
+	/**
+	 * 
+	 * @param issuer
+	 * @param issuerKeyPair
+	 * @param subject
+	 * @param issuerPKByteArr
+	 * @param validityPeriodType
+	 * @param validityPeriod
+	 * @param pkiLevel
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 * @throws CertificateException
+	 * @throws IOException
+	 */
+	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair, final X500Name subject, final byte[] issuerPKByteArr, int validityPeriodType, int validityPeriod, PKILevel pkiLevel)
+			throws NoSuchAlgorithmException, CertificateException, IOException {
+		
+		return issueCertificate(issuer, issuerKeyPair, subject, SubjectPublicKeyInfo.getInstance(issuerPKByteArr), validityPeriodType, validityPeriod, pkiLevel);
+
+	}
+
+
+	/**
+	 * 
+	 * @param issuer
+	 * @param issuerKeyPair
+	 * @param subject
+	 * @param spkInfo
+	 * @param validityPeriodType
+	 * @param validityPeriod
+	 * @return
+	 * @throws NoSuchAlgorithmException
+	 * @throws CertificateException
+	 * @throws IOException
+	 */
+	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair, final X500Name subject, SubjectPublicKeyInfo spkInfo, int validityPeriodType, int validityPeriod, PKILevel pkiLevel)
+			throws NoSuchAlgorithmException, CertificateException, IOException {
+		
 		Date dateOfIssuing = new Date();              // time from which certificate is valid
 		Calendar expiryCal = Calendar.getInstance();
 		expiryCal.add(validityPeriodType, validityPeriod);             // time after which certificate is not valid
@@ -1199,13 +1235,17 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 		    serialNumber, 
 		    dateOfIssuing, dateOfExpiry,
 		    subject,
-		    SubjectPublicKeyInfo.getInstance(issuerPKByteArr));
-		
-//    certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+		    spkInfo);
 
-//    KeyUsage usage = new KeyUsage(KeyUsage.keyCertSign | KeyUsage.digitalSignature | KeyUsage.keyEncipherment | KeyUsage.dataEncipherment | KeyUsage.cRLSign);
-		KeyUsage usage = new KeyUsage( KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.dataEncipherment | KeyUsage.keyEncipherment );
-		certBuilder.addExtension(Extension.keyUsage, false, usage);
+		// Key usage for end entity
+		KeyUsage usage = new KeyUsage( KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment );
+
+		if( PKILevel.ROOT.equals(pkiLevel) || PKILevel.INTERMEDIATE.equals(pkiLevel)) {
+			certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+			usage = new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyCertSign);
+		}
+		
+		certBuilder.addExtension(Extension.keyUsage, true, usage);
 
 		certBuilder.addExtension(Extension.authorityKeyIdentifier, false, new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(issuerKeyPair.getPublic()) );
 		byte[] certBytes = certBuilder.build(new JCESigner(issuerKeyPair.getPrivate())).getEncoded();
@@ -1457,12 +1497,21 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
       throws UnrecoverableEntryException {
 	  
     ErrorMsgContent errMsgContent = ErrorMsgContent.getInstance(body.getContent());
+    PKIFreeText pkiText = errMsgContent.getPKIStatusInfo().getStatusString();
+    String statusText = "";
+    for(int i = 0; i < pkiText.size(); i++) {
+        try{
+        	statusText += " " + pkiText.getStringAt(i).getString();
+        }catch( NullPointerException npe ){ //NOSONAR
+        	// just ignore
+        }
+    }
+    
     String errMsg = "errMsg : #" + errMsgContent.getErrorCode() + " "
-        + errMsgContent.getErrorDetails() + " / "
-        + errMsgContent.getPKIStatusInfo().getStatusString().toString();
+        + errMsgContent.getErrorDetails() + " / " + statusText;
     
     LOGGER.info(errMsg);
-
+/*
     try{
 	    if( errMsgContent != null && errMsgContent.getPKIStatusInfo() != null ){
 		    PKIFreeText freeText = errMsgContent.getPKIStatusInfo().getStatusString();
@@ -1473,7 +1522,8 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
     }catch( NullPointerException npe ){ //NOSONAR
     	// just ignore
     }
-
+*/
+    
     throw new UnrecoverableEntryException(errMsg);
   }
 
