@@ -20,6 +20,13 @@ import org.slf4j.LoggerFactory;
  * </p><p>
  * We use this for JUnit tests. If unlimited strength crypto is not available,
  * we simply skip certain JUnit tests that would require it.
+ * 
+ * Class copied from https://github.com/Crydust/owasp-esapi-onlyencryptedproperties due to problems 
+ * finding a corresponding repo containing the jar. 
+ * 
+ * Original license is BSD
+ * Copyright (c) 2007, The OWASP Foundation
+ * 
  */
 public class CryptoPolicy {
 

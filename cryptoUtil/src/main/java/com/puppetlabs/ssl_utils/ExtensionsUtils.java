@@ -62,6 +62,13 @@ import java.util.Set;
 
 /**
  * Utilities for working with X509 extensions.
+ * 
+ * Copied from https://github.com/puppetlabs/jvm-ssl-utils due to package-only visibility of useful methods.
+ * 
+ * Original license is Apache License Version 2.0
+ * 
+ * Copyright (C) 2015 Puppet Labs Inc
+ * 
  */
 public class ExtensionsUtils {
 
