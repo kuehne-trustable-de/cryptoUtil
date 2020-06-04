@@ -76,6 +76,7 @@ import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
@@ -629,14 +630,25 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
             char[] password)
             throws GeneralSecurityException, IOException {
     	
-    	return getCsr(subject,pubKey, priKey, password,null);
+    	return getCsr(subject,pubKey, priKey, password,null, null);
+    }
+    
+    public static PKCS10CertificationRequest getCsr(X500Principal subject,
+            PublicKey pubKey, 
+            PrivateKey priKey, 
+            char[] password,
+            List<Map<String, Object>> extensions)
+            throws GeneralSecurityException, IOException {
+    	
+    	return getCsr(subject,pubKey, priKey, password,extensions, null);
     }
     
     public static PKCS10CertificationRequest getCsr(X500Principal subject,
                 PublicKey pubKey, 
                 PrivateKey priKey, 
                 char[] password,
-                List<Map<String, Object>> extensions)
+                List<Map<String, Object>> extensions,
+                GeneralName[] sanArray)
                 throws GeneralSecurityException, IOException {
       
         SubjectPublicKeyInfo pkInfo = SubjectPublicKeyInfo.getInstance(pubKey
@@ -662,10 +674,20 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
         if ((extensions != null) && (extensions.size() > 0)) {
             Extensions parsedExts = ExtensionsUtils.getExtensionsObjFromMap(extensions);
             builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, parsedExts);
-          }
+        }
 
         ExtensionsGenerator extensionsGenerator = new ExtensionsGenerator();
-        extensionsGenerator.addExtension(Extension.extendedKeyUsage, false, new ExtendedKeyUsage(KeyPurposeId.id_kp_eapOverLAN));
+
+        if( sanArray != null) {
+            GeneralNames subjectAltNames = new GeneralNames(sanArray);
+            extensionsGenerator.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
+            System.out.println("added #" + sanArray.length + " sans");
+            for(GeneralName gn: sanArray) {
+                System.out.println("san :" + gn);
+            }
+        }
+        
+//        extensionsGenerator.addExtension(Extension.extendedKeyUsage, false, new ExtendedKeyUsage(KeyPurposeId.id_kp_eapOverLAN));
 
         builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extensionsGenerator.generate());
 
