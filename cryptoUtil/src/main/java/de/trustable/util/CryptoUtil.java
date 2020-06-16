@@ -747,7 +747,11 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
       } else if ("privilegeWithdrawn".equalsIgnoreCase(revocationReasonStr)) {
         revReason = CRLReason.privilegeWithdrawn;
       } else if ("aACompromise".equalsIgnoreCase(revocationReasonStr)) {
-        revReason = CRLReason.aACompromise;
+          revReason = CRLReason.aACompromise;
+      } else if ("certificateHold".equalsIgnoreCase(revocationReasonStr)) {
+          revReason = CRLReason.certificateHold;
+      } else if ("removeFromCRL".equalsIgnoreCase(revocationReasonStr)) {
+          revReason = CRLReason.removeFromCRL;
       } else if ("unspecified".equalsIgnoreCase(revocationReasonStr)) {
         revReason = CRLReason.unspecified;
       }
@@ -771,7 +775,11 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
     case CRLReason.privilegeWithdrawn:
       return "privilegeWithdrawn";
     case CRLReason.aACompromise:
-      return "aACompromise";
+        return "aACompromise";
+    case CRLReason.certificateHold:
+        return "certificateHold";
+    case CRLReason.removeFromCRL:
+        return "removeFromCRL";
     default:
       return "unspecified";
     }      
