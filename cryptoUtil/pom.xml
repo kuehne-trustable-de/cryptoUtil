@@ -6,7 +6,7 @@
 	
 	<groupId>de.trustable</groupId>
 	<artifactId>cryptoUtil</artifactId>
-	<version>1.1.4</version>
+	<version>1.1.5</version>
 	<name>cryptoUtil</name>
 
 
@@ -43,7 +43,12 @@
 		<jasyptVersion>1.9.2</jasyptVersion>
 		<commonsCodecVersion>1.10</commonsCodecVersion>
 		<javaxActivation.version>1.1.1</javaxActivation.version>
-		
+
+		<maven-javadoc-plugin.version>3.2.0</maven-javadoc-plugin.version>
+		<maven-checkstyle.version>3.1.1</maven-checkstyle.version>
+		<checkstyle.version>8.32</checkstyle.version>
+		<spring-nohttp-checkstyle.version>0.0.4.RELEASE</spring-nohttp-checkstyle.version>
+
 		<slf4j.version>1.7.26</slf4j.version>
 		<logback.version>1.1.11</logback.version>
 		
@@ -77,6 +82,12 @@
 			<groupId>org.cryptacular</groupId>
 			<artifactId>cryptacular</artifactId>
 			<version>${cryptacularVersion}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
@@ -127,8 +138,25 @@
 					</execution>
 				</executions>
 			</plugin-->
-			
-            <plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>${maven-javadoc-plugin.version}</version>
+				<configuration>
+					<detectJavaApiLink>false</detectJavaApiLink>
+					<source>${maven.compiler.source}</source>
+				</configuration>
+				<executions>
+					<execution>
+						<id>attach-javadocs</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
                 <groupId>org.owasp</groupId>
                 <artifactId>dependency-check-maven</artifactId>
                 <version>${dependencyCheck.version}</version>
@@ -204,4 +232,73 @@
 		</snapshotRepository>
 	</distributionManagement>
 
+	<profiles>
+		<profile>
+			<id>prepare-central</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-javadoc-plugin</artifactId>
+						<version>${maven-javadoc-plugin.version}</version>
+						<configuration>
+							<detectJavaApiLink>false</detectJavaApiLink>
+							<source>${maven.compiler.source}</source>
+						</configuration>
+						<executions>
+							<execution>
+								<id>attach-javadocs</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-checkstyle-plugin</artifactId>
+						<version>${maven-checkstyle.version}</version>
+						<dependencies>
+							<dependency>
+								<groupId>com.puppycrawl.tools</groupId>
+								<artifactId>checkstyle</artifactId>
+								<version>${checkstyle.version}</version>
+							</dependency>
+							<!--dependency>
+								<groupId>io.spring.nohttp</groupId>
+								<artifactId>nohttp-checkstyle</artifactId>
+								<version>${spring-nohttp-checkstyle.version}</version>
+							</dependency-->
+						</dependencies>
+						<configuration>
+							<configLocation>checkstyle.xml</configLocation>
+							<includes>pom.xml,README.md</includes>
+							<excludes>.git/**/*,target/**/*,node_modules/**/*,node/**/*</excludes>
+							<sourceDirectories>./</sourceDirectories>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>check</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
