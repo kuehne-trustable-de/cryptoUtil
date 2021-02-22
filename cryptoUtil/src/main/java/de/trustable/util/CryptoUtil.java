@@ -832,8 +832,11 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
      * @return the truncated string
      */
     public static String limitLength( String in , int maxLength ){
-      int len = in.length() > maxLength ? maxLength : in.length();
-      return in.substring( 0, len );
+    	if(in == null){
+    		return "";
+		}
+      	int len = in.length() > maxLength ? maxLength : in.length();
+      	return in.substring( 0, len );
     }
 
 

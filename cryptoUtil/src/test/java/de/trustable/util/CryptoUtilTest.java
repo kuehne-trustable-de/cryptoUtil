@@ -70,31 +70,38 @@ public class CryptoUtilTest {
   public void tearDown() throws Exception {
   }
 
-  @Test
-  public void testParseCertificateRequest() throws Exception {
-    
-    try {
-      cryptoUtil.parseCertificateRequest(nonPEM_CSR);
-      fail( "GeneralSecurityException expected");
-    } catch (GeneralSecurityException e) {
-      assertEquals("Parsing of CSR failed! Not PEM encoded?", e.getMessage());
+    @Test
+    public void testLimitStringLength() throws Exception {
+        assertEquals("test", CryptoUtil.limitLength( "test", 10 ));
+        assertEquals("testtestte", CryptoUtil.limitLength( "testtesttest", 10 ));
+
+        assertEquals("", CryptoUtil.limitLength( null, 10 ));
     }
-    
-    try {
-      cryptoUtil.parseCertificateRequest(nonASCII_CSR);
-      fail( "GeneralSecurityException expected");
-    } catch (GeneralSecurityException e) {
-      assertEquals("Parsing of CSR failed! Not PEM encoded?", e.getMessage());
-    }
-    
-    try {
-      Pkcs10RequestHolder p10Req = cryptoUtil.parseCertificateRequest(TestData.SampleCSRBase64);
-      assertTrue( "expect test csr to be valid", p10Req.isCSRValid() );
-    } catch (GeneralSecurityException e) {
-      fail( "Parsable CSR, no GeneralSecurityException expected: " +e.getMessage());
-    }
-    
-    
+
+    @Test
+    public void testParseCertificateRequest() throws Exception {
+
+        try {
+          cryptoUtil.parseCertificateRequest(nonPEM_CSR);
+          fail( "GeneralSecurityException expected");
+        } catch (GeneralSecurityException e) {
+          assertEquals("Parsing of CSR failed! Not PEM encoded?", e.getMessage());
+        }
+
+        try {
+          cryptoUtil.parseCertificateRequest(nonASCII_CSR);
+          fail( "GeneralSecurityException expected");
+        } catch (GeneralSecurityException e) {
+          assertEquals("Parsing of CSR failed! Not PEM encoded?", e.getMessage());
+        }
+
+        try {
+          Pkcs10RequestHolder p10Req = cryptoUtil.parseCertificateRequest(TestData.SampleCSRBase64);
+          assertTrue( "expect test csr to be valid", p10Req.isCSRValid() );
+        } catch (GeneralSecurityException e) {
+          fail( "Parsable CSR, no GeneralSecurityException expected: " +e.getMessage());
+        }
+
   }
 
   @Test
