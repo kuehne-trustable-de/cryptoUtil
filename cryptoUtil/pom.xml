@@ -6,7 +6,7 @@
 	
 	<groupId>de.trustable</groupId>
 	<artifactId>cryptoUtil</artifactId>
-	<version>1.1.6</version>
+	<version>1.1.8</version>
 	<name>cryptoUtil</name>
 
 
@@ -40,7 +40,7 @@
 
 		<bouncyCastleVersion>1.68</bouncyCastleVersion>
 		<cryptacularVersion>1.2.4</cryptacularVersion>
-		<jasyptVersion>1.9.2</jasyptVersion>
+		<jasyptVersion>1.9.3</jasyptVersion>
 		<commonsCodecVersion>1.10</commonsCodecVersion>
 		<javaxActivation.version>1.1.1</javaxActivation.version>
 
@@ -58,7 +58,7 @@
     	<license.inceptionYear>2016</license.inceptionYear>
     	<license.organizationName>Andreas Kuehne</license.organizationName>
     	
-    	<dependencyCheck.version>5.3.1</dependencyCheck.version>
+    	<dependencyCheck.version>6.1.2</dependencyCheck.version>
         <dependencyCheck.skip>false</dependencyCheck.skip>
     	
 	</properties>
@@ -193,10 +193,11 @@
 								<arg>--pinentry-mode</arg>
 								<arg>loopback</arg>
 							</gpgArguments>
+							<skip>true</skip>
 						</configuration>
 					</execution>
 				</executions>
-			</plugin>			
+			</plugin>
         </plugins>
     </build>
 
