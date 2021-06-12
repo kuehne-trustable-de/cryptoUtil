@@ -260,8 +260,8 @@ public class ExtensionsUtils {
      * @param extList A list of extensions returned by getExtensionList().
      * @param oid The OID of the extension to find.
      * @return The map describing the found extension, null if the oid doesn't exist.
-     * @see #getExtensionList(org.bouncycastle.asn1.x509.Extensions)
-     * @see #getExtensionList(java.security.cert.X509Certificate)
+     * @see #getExtensionList(Extensions)
+     * @see #getExtensionList(X509Certificate)
      */
     public static Map<String, Object> getExtension(List<Map<String, Object>> extList,
                                                    String oid)
@@ -383,7 +383,7 @@ public class ExtensionsUtils {
      *
      * @return The results Extensions container.
      * @throws GeneralSecurityException 
-     * @see #parseExtensionObject(java.util.Map)
+     * @see #parseExtensionObject(Map)
      */
     public static Extensions getExtensionsObjFromMap(List<Map<String,Object>> extMapsList)
             throws IOException, GeneralSecurityException {
@@ -882,7 +882,7 @@ public class ExtensionsUtils {
      * @return A list of the names contained in each GeneralName in the
      *         GeneralNames data structure.
      * @throws IOException
-     * @see org.bouncycastle.asn1.x509.GeneralName
+     * @see GeneralName
      */
     private static Map<String, List<String>> generalNamesToMap(GeneralNames names)
             throws IOException
@@ -919,7 +919,7 @@ public class ExtensionsUtils {
      *
      * @param gnMap A map containing name types and a list of names.
      * @return A Bouncy Castle GeneralNames object.
-     * @see #generalNamesToMap(org.bouncycastle.asn1.x509.GeneralNames)
+     * @see #generalNamesToMap(GeneralNames)
      */
     private static GeneralNames mapToGeneralNames(Map<String, List<String>> gnMap) {
         List<GeneralName> ret = new ArrayList<>();

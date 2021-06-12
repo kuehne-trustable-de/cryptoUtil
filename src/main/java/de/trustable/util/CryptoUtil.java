@@ -7,7 +7,6 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -130,9 +129,9 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
     
 	/**
-	 * 
-	 * @param serial
-	 * @return
+	 * Align a serial number to a default length
+	 * @param serial the serial number
+	 * @return the normalized serial number string
 	 */
 	public static String getPaddedSerial(final String serial){
 	
@@ -162,7 +161,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
 	/**
 	 * convert the usage-bits to a readable string
-	 * @param usage
+	 * @param usage the array of bits representing the different bits
 	 * @return descriptive text representing the key usage
 	 */
 	public static String usageAsString( boolean[] usage ){
@@ -172,7 +171,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 		}
 
 		String desc = "valid for ";
-		if (                       usage[0]) desc += "digitalSignature ";
+		if ( (usage.length > 0) && usage[0]) desc += "digitalSignature ";
 		if ( (usage.length > 1) && usage[1]) desc += "nonRepudiation ";
 		if ( (usage.length > 2) && usage[2]) desc += "keyEncipherment ";
 		if ( (usage.length > 3) && usage[3]) desc += "dataEncipherment ";
@@ -189,19 +188,6 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 	public Pkcs10RequestHolder parseCertificateRequest( final byte[] csr ) throws IOException, GeneralSecurityException {
 		  
 		return parseCertificateRequest(new PKCS10CertificationRequest(csr));
-	}
-	
-    /**
-     * parse a PEM encoded csr, verify it and return the P10 request object
-     *  
-     * @param csr 
-     * @return
-     * @throws IOException
-     * @throws GeneralSecurityException
-     */
-	  public Pkcs10RequestHolder parseCertificateRequest( final String csr ) throws IOException, GeneralSecurityException{
-	    	    
-	    return parseCertificateRequest(convertPemToPKCS10CertificationRequest(csr));
 	}
 	
 	public Pkcs10RequestHolder parseCertificateRequest(final PKCS10CertificationRequest p10Request)
@@ -222,7 +208,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 		reqHolder.setSigningAlgorithm(signingAlgorithm);
 		reqHolder.setSigningAlgorithmName(OidNameMapper.lookupOid(signingAlgorithm));
 
-		PublicKey publicKey;
+		PublicKey publicKey = null;
 		SubjectPublicKeyInfo subjectPKInfo = reqHolder.getP10Req().getSubjectPublicKeyInfo();
 
 		try {
@@ -273,35 +259,35 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
   /**
    * 
-   * @param p10Req
-   * @return
-   * @throws IOException
-   * @throws GeneralSecurityException
+   * @param p10Req a structure containing the CSR details
+   * @return the public key requesting to be signed
+   * @throws IOException problem parsing the csr
+   * @throws GeneralSecurityException some security problem occurred
    */
     public PublicKey getPublicKeyFromCSR(PKCS10CertificationRequest p10Req) throws IOException, GeneralSecurityException {
-    PublicKey publicKey;
-    SubjectPublicKeyInfo subjectPKInfo = p10Req.getSubjectPublicKeyInfo();
-    
-    try {
-      X509EncodedKeySpec xspec = 
-          new X509EncodedKeySpec(new DERBitString(subjectPKInfo).getBytes());
-      AlgorithmIdentifier keyAlg = subjectPKInfo.getAlgorithm();
-      publicKey = KeyFactory.getInstance(keyAlg.getAlgorithm().getId(), "BC").generatePublic(xspec);
-    } catch (InvalidKeySpecException e) {
-      LOGGER.info("retrieving public key from CSR failed", e);
-      throw new GeneralSecurityException("error retrieving public key from CSR: " + e.getMessage());
-    } catch (NoSuchAlgorithmException e) {
-      LOGGER.info("algorithm of CSR unknown", e);
-      throw new GeneralSecurityException("algorithm of CSR unknown: " + e.getMessage());
-    }
-    return publicKey;
-  }
+		PublicKey publicKey = null;
+		SubjectPublicKeyInfo subjectPKInfo = p10Req.getSubjectPublicKeyInfo();
+
+		try {
+		  X509EncodedKeySpec xspec =
+			  new X509EncodedKeySpec(new DERBitString(subjectPKInfo).getBytes());
+		  AlgorithmIdentifier keyAlg = subjectPKInfo.getAlgorithm();
+		  publicKey = KeyFactory.getInstance(keyAlg.getAlgorithm().getId(), "BC").generatePublic(xspec);
+		} catch (InvalidKeySpecException e) {
+		  LOGGER.info("retrieving public key from CSR failed", e);
+		  throw new GeneralSecurityException("error retrieving public key from CSR: " + e.getMessage());
+		} catch (NoSuchAlgorithmException e) {
+		  LOGGER.info("algorithm of CSR unknown", e);
+		  throw new GeneralSecurityException("algorithm of CSR unknown: " + e.getMessage());
+		}
+		return publicKey;
+  	}
 
   /**
-   * 
-   * @param req the P10 CSR to be converted to PEM
-   * @return the PEM-formated CSR
-   * @throws IOException
+   *
+   * @param req a structure containing the CSR details
+   * @return a PEM encoded CSR
+   * @throws IOException problem parsing the CSR
    */
   public static String pkcs10RequestToPem( PKCS10CertificationRequest req) throws IOException{
     
@@ -314,10 +300,10 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
   }
 
   /**
-   * 
-   * @param cert the certificate to be converted to PEM
-   * @return the PEM-formatted string
-   * @throws IOException
+   *
+   * @param cert a certificate object
+   * @return a PEM encoded certificate
+   * @throws IOException problem serializing the certificate
    */
   public String x509CertToPem( X509Certificate cert) throws IOException{
     
@@ -330,10 +316,10 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
   }
 
   /**
-   * 
-   * @param pk the public key to be converted to PEM
-   * @return the PEM-formatted string
-   * @throws IOException
+   *
+   * @param pk a public key object
+   * @return a PEM encoded public key
+   * @throws IOException problem serializing the public key
    */
   public String publicKeyToPem(PublicKey pk) throws IOException{
     
@@ -345,27 +331,46 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
       return stringWriter.toString();
   }
 
-  /**
-   * 
-   * @param pem
-   * @return
-   * @throws GeneralSecurityException 
-   */
-  public PKCS10CertificationRequest convertPemToPKCS10CertificationRequest(final String pem) throws GeneralSecurityException {
-    
-	  
-        PKCS10CertificationRequest csr = null;
-        ByteArrayInputStream pemStream;
-	  pemStream = new ByteArrayInputStream(pem.getBytes(StandardCharsets.UTF_8));
+	/**
+	 * parse a PEM encoded csr, verify it and return the P10 request holder
+	 *
+	 * @param csr a certificate signing request as base64 string
+	 * @return a holder object containing the CSR details
+	 * @throws IOException problem parsing the csr
+	 * @throws GeneralSecurityException some security problem occurred
+	 */
+	public Pkcs10RequestHolder parseCertificateRequest( final String csr ) throws IOException, GeneralSecurityException{
 
-	  Reader pemReader = new InputStreamReader(pemStream);
+		return parseCertificateRequest(convertPemToPKCS10CertificationRequest(csr));
+	}
+
+
+	/**
+	 * parse a PEM encoded csr, verify it and return the P10 request object
+	 *
+	 * @param pem a certificate signing request as base64 string
+	 * @return an object containing the CSR
+	 * @throws GeneralSecurityException some security problem occurred
+	 */
+  	public PKCS10CertificationRequest convertPemToPKCS10CertificationRequest(final String pem) throws GeneralSecurityException {
+
+        PKCS10CertificationRequest csr = null;
+        ByteArrayInputStream pemStream = null;
+        try {
+            pemStream = new ByteArrayInputStream(pem.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+            LOGGER.error("UnsupportedEncodingException, convertPemToPublicKey", ex);
+            throw new GeneralSecurityException("Parsing of CSR failed due to encoding problem! Not PEM encoded?");
+        }
+
+        Reader pemReader = new InputStreamReader(pemStream);
         PEMParser pemParser = new PEMParser(pemReader);
 
         try {
             Object parsedObj = pemParser.readObject();
 
             if( parsedObj == null ){
-          throw new GeneralSecurityException("Parsing of CSR failed! Not PEM encoded?");
+                throw new GeneralSecurityException("Parsing of CSR failed! Not PEM encoded?");
             }
             
 //            LOGGER.debug("PemParser returned: " + parsedObj);
@@ -375,15 +380,15 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
             }
         } catch (IOException ex) {
-          LOGGER.error("IOException, convertPemToPublicKey", ex);
-      throw new GeneralSecurityException("Parsing of CSR failed! Not PEM encoded?");
+          	LOGGER.error("IOException, convertPemToPublicKey", ex);
+      		throw new GeneralSecurityException("Parsing of CSR failed! Not PEM encoded?");
         }finally{
-          try {
-        pemParser.close();
-      } catch (IOException e) {
-        // just ignore
-            LOGGER.debug("IOException on close()", e);
-      }
+            try {
+        	    pemParser.close();
+      		} catch (IOException e) {
+                // just ignore
+                LOGGER.debug("IOException on close()", e);
+            }
         }
 
         return csr;
@@ -391,43 +396,47 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
 
   /**
-   * 
-   * @param pem
-   * @return
-   * @throws GeneralSecurityException 
+   *
+   * @param pem a PEM encoded public key
+   * @return  a public key object
+   * @throws GeneralSecurityException some security problem occurred
    */
   public PublicKey convertPemToPublicKey (final String pem) throws GeneralSecurityException {
     
     PublicKey pubKey = null;
-        ByteArrayInputStream pemStream;
-	  pemStream = new ByteArrayInputStream(pem.getBytes(StandardCharsets.UTF_8));
+        ByteArrayInputStream pemStream = null;
+        try {
+            pemStream = new ByteArrayInputStream(pem.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException ex) {
+            LOGGER.error("UnsupportedEncodingException, convertPemToPublicKey", ex);
+            throw new GeneralSecurityException("Parsing of PublicKey failed due to encoding problem! Not PEM encoded?");
+        }
 
-	  Reader pemReader = new InputStreamReader(pemStream);
+        Reader pemReader = new InputStreamReader(pemStream);
         PEMParser pemParser = new PEMParser(pemReader);
 
         try {
             Object parsedObj = pemParser.readObject();
 
             if( parsedObj == null ){
-          throw new GeneralSecurityException("Parsing of PublicKey failed! Not PEM encoded?");
+                throw new GeneralSecurityException("Parsing of PublicKey failed! Not PEM encoded?");
             }
             
 //            LOGGER.info("PemParser returned: " + parsedObj);
             
             if (parsedObj instanceof PublicKey ) {
                 pubKey = (PublicKey) parsedObj;
-
             }
         } catch (IOException ex) {
-          LOGGER.error("IOException, convertPemToPublicKey", ex);
-      throw new GeneralSecurityException("Parsing of PublicKey  failed! Not PEM encoded?");
+            LOGGER.error("IOException, convertPemToPublicKey", ex);
+            throw new GeneralSecurityException("Parsing of PublicKey  failed! Not PEM encoded?");
         }finally{
-          try {
-        pemParser.close();
-      } catch (IOException e) {
-        // just ignore
-            LOGGER.debug("IOException on close()", e);
-      }
+            try {
+                pemParser.close();
+            } catch (IOException e) {
+                // just ignore
+                LOGGER.debug("IOException on close()", e);
+            }
         }
 
         return pubKey;
@@ -435,10 +444,10 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
   
   /**
-   * 
-   * @param pem
-   * @return
-   * @throws GeneralSecurityException
+   *
+   * @param pem a PEM encoded certificate
+   * @return a certificate details holder object
+   * @throws GeneralSecurityException some security problem occurred
    */
   public X509CertificateHolder convertPemToCertificateHolder (final String pem) throws GeneralSecurityException {
 	  
@@ -452,17 +461,24 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
   }
   
 	/**
-	 * 
-	 * @param pem
-	 * @return
-	 * @throws GeneralSecurityException
+	 *
+     * @param pem a PEM encoded certificate
+     * @return a X509 certificate
+     * @throws GeneralSecurityException some security problem occurred
 	 */
 	public static X509Certificate convertPemToCertificate(final String pem)
 			throws GeneralSecurityException {
 
-		X509Certificate cert;
-		ByteArrayInputStream pemStream;
-		pemStream = new ByteArrayInputStream(pem.getBytes(StandardCharsets.UTF_8));
+		X509Certificate cert = null;
+		ByteArrayInputStream pemStream = null;
+		try {
+			pemStream = new ByteArrayInputStream(pem.getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException ex) {
+			LOGGER.error("UnsupportedEncodingException, convertPemToPublicKey",
+					ex);
+			throw new GeneralSecurityException(
+					"Parsing of PublicKey failed due to encoding problem! Not PEM encoded?");
+		}
 
 		Reader pemReader = new InputStreamReader(pemStream);
 		PEMParser pemParser = new PEMParser(pemReader);
@@ -503,17 +519,23 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 	}
 
 	/**
-	 * 
-	 * @param pem
-	 * @return
-	 * @throws GeneralSecurityException
+	 *
+     * @param pem a PEM encoded private key
+     * @return a private key object
+     * @throws GeneralSecurityException some security problem occurred
 	 */
 	public PrivateKey convertPemToPrivateKey(final String pem)
 			throws GeneralSecurityException {
 
-		PrivateKey privKey;
-		ByteArrayInputStream pemStream;
-		pemStream = new ByteArrayInputStream(pem.getBytes(StandardCharsets.UTF_8));
+		PrivateKey privKey = null;
+		ByteArrayInputStream pemStream = null;
+		try {
+			pemStream = new ByteArrayInputStream(pem.getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException ex) {
+			LOGGER.error("UnsupportedEncodingException, PrivateKey", ex);
+			throw new GeneralSecurityException(
+					"Parsing of PEM file failed due to encoding problem! Not PEM encoded?");
+		}
 
 		Reader pemReader = new InputStreamReader(pemStream);
 		PEMParser pemParser = new PEMParser(pemReader);
@@ -555,16 +577,19 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
 	/**
    * 
-   * @param ba
-   * @return
-   * @throws IOException
+   * @param ba a byte array containg an ASN.1 object
+   * @return the basic ASN.1 object
+   * @throws IOException problem parsing the ASN.1 structure
    */
-  public ASN1Primitive getDERObject(byte[] ba) throws IOException {
-	  try (ASN1InputStream ins = new ASN1InputStream(ba)) {
-		  ASN1Primitive obj = ins.readObject();
-		  return obj;
-	  }
-  }
+    public ASN1Primitive getDERObject(byte[] ba) throws IOException {
+        ASN1InputStream ins = new ASN1InputStream(ba);
+        try {
+            ASN1Primitive obj = ins.readObject();
+            return obj;
+        } finally {
+            ins.close();
+        }
+    }
   
   String getHashAsBase64( byte[] content ) throws GeneralSecurityException{
     MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -576,13 +601,13 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
   /**
    * build a sample csr 
    * 
-   * @param subject
-   * @param pubKey
-   * @param priKey
-   * @param password
-   * @return
-   * @throws GeneralSecurityException
-   * @throws IOException
+   * @param subject the subject of the certificate
+   * @param pubKey the public ky to be signed
+   * @param priKey the corresponding private key
+   * @param password the PKCS#10 password
+   * @return PEM encoded CSR
+   * @throws IOException problem creating the csr
+   * @throws GeneralSecurityException some security problem occurred
    */
     public static String getCsrAsPEM(X500Principal subject,
             PublicKey pubKey, 
@@ -599,6 +624,16 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
     }
 
+    /**
+     *
+     * @param subject the subject of the certificate as X500Principal
+     * @param pubKey the public ky to be signed
+     * @param priKey the corresponding private key
+     * @param password the PKCS#10 password
+     * @return CSR content as PKCS#10 object
+     * @throws IOException problem creating the csr
+     * @throws GeneralSecurityException some security problem occurred
+     */
     public static PKCS10CertificationRequest getCsr(X500Principal subject,
             PublicKey pubKey, 
             PrivateKey priKey, 
@@ -607,7 +642,18 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
     	
     	return getCsr(subject,pubKey, priKey, password,null, null);
     }
-    
+
+    /**
+     *
+     * @param subject the subject of the certificate as X500Principal
+     * @param pubKey the public ky to be signed
+     * @param priKey the corresponding private key
+     * @param password the PKCS#10 password
+     * @param extensions a list of attributes
+     * @return CSR content as PKCS#10 object
+     * @throws IOException problem creating the csr
+     * @throws GeneralSecurityException some security problem occurred
+     */
     public static PKCS10CertificationRequest getCsr(X500Principal subject,
             PublicKey pubKey, 
             PrivateKey priKey, 
@@ -617,7 +663,19 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
     	
     	return getCsr(subject,pubKey, priKey, password,extensions, null);
     }
-    
+
+    /**
+     *
+     * @param subject the subject of the certificate as X500Principal
+     * @param pubKey the public ky to be signed
+     * @param priKey the corresponding private key
+     * @param password the PKCS#10 password
+     * @param extensions a list of attributes
+     * @param sanArray list of SANs
+     * @return CSR content as PKCS#10 object
+     * @throws IOException problem creating the csr
+     * @throws GeneralSecurityException some security problem occurred
+     */
     public static PKCS10CertificationRequest getCsr(X500Principal subject,
                 PublicKey pubKey, 
                 PrivateKey priKey, 
@@ -656,16 +714,14 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
         if( sanArray != null) {
             GeneralNames subjectAltNames = new GeneralNames(sanArray);
             extensionsGenerator.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
-            System.out.println("added #" + sanArray.length + " sans");
+            LOGGER.debug("added #" + sanArray.length + " sans");
+
             for(GeneralName gn: sanArray) {
-                System.out.println("san :" + gn);
+                LOGGER.debug("san :" + gn);
             }
         }
         
-//        extensionsGenerator.addExtension(Extension.extendedKeyUsage, false, new ExtendedKeyUsage(KeyPurposeId.id_kp_eapOverLAN));
-
         builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extensionsGenerator.generate());
-
 
         return builder.build(signer);
 
@@ -674,8 +730,8 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
   /**
    * Build a descriptive text for certificate
    *
-   * @param x509Certificate the certificate as the input for the decription
-   * @return String the description of the certificate
+   * @param x509Certificate X509Certificate
+   * @return String describing the certificate
    */
   public String getDescription(X509Certificate x509Certificate) {
 
@@ -699,7 +755,11 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
     return subject + " (#" + serial + ")";
   }
 
-
+    /**
+     *
+     * @param revocationReasonStr a string describing the revocation reason
+     * @return CRL reason object
+     */
   public CRLReason crlReasonFromString(final String revocationReasonStr) {
 
     int revReason = CRLReason.unspecified;
@@ -734,6 +794,11 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
     return CRLReason.lookup(revReason);
   }
 
+    /**
+     *
+     * @param crlReason a CRL reason object to be stringified
+     * @return a string describing the revocation reason
+     */
   public String crlReasonAsString(final CRLReason crlReason) {
 
     switch( crlReason.getValue().intValue() ){
@@ -760,9 +825,18 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
     }      
   }
 
+    /**
+     *
+     * @param in an input string
+     * @param maxLength the maximum length
+     * @return the truncated string
+     */
     public static String limitLength( String in , int maxLength ){
-      int len = in.length() > maxLength ? maxLength : in.length();
-      return in.substring( 0, len );
+    	if(in == null){
+    		return "";
+		}
+      	int len = in.length() > maxLength ? maxLength : in.length();
+      	return in.substring( 0, len );
     }
 
 
@@ -773,13 +847,12 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
      * 
      * @return the subject key identifier object
      * 
-     * @throws NoSuchAlgorithmException
-     * @throws NoSuchAlgorithmException problem calculating the SKI
+     * @throws NoSuchAlgorithmException X509 extension problem
      */
-    	public static SubjectKeyIdentifier[] getSKI( final X509Certificate x509Cert ) throws NoSuchAlgorithmException 
-    	 {
+    	public static SubjectKeyIdentifier[] getSKI( final X509Certificate x509Cert ) throws NoSuchAlgorithmException
+        {
 
-    		SubjectKeyIdentifier[] skiArr = new SubjectKeyIdentifier[2];
+    		SubjectKeyIdentifier skiArr[] = new SubjectKeyIdentifier[2];
     		
     		JcaX509ExtensionUtils util = new JcaX509ExtensionUtils();
     		
@@ -830,10 +903,10 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
     /**
      * 
-     * @param recipientDN
-     * @param senderDN
-     * @param pkiHeader
-     * @return
+     * @param recipientDN the recipient of the message
+     * @param senderDN the sender of the message
+     * @param pkiHeader the message header
+     * @return a builder for a ProtectedPKIMessage
      */
     public ProtectedPKIMessageBuilder getPKIResponseBuilder(final X500Name recipientDN, final X500Name senderDN, final PKIHeader pkiHeader) {
 
@@ -860,17 +933,6 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
         		keyId);
     }
 
-    /**
-     * 
-     * @param recipientDN
-     * @param senderDN
-     * @param senderNonce
-     * @param recipNonce
-     * @param transactionId
-     * @param keyId
-     * @param recipKeyId
-     * @return
-     */
     public ProtectedPKIMessageBuilder getPKIBuilder(final X500Name recipientDN, final X500Name senderDN,
     		final byte[] senderNonce,
     		final byte[] recipNonce,
@@ -913,12 +975,12 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
     /**
      * 
-     * @param hmacSecret
-     * @return
-     * @throws CRMFException
+     * @param hmacSecret the secret the HMAC
+     * @return an initialized MAC calculator
+     * @throws CRMFException a message related exception
      */
 	public MacCalculator getMacCalculator(final String hmacSecret)
-			throws CRMFException {
+            throws CRMFException {
 		
 		JcePKMACValuesCalculator jcePkmacCalc = new JcePKMACValuesCalculator();
 		final AlgorithmIdentifier digAlg = new AlgorithmIdentifier(
@@ -934,12 +996,6 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 	/**
 	 * @deprecated
 	 * 
-	 * @param issuer
-	 * @param keyPair
-	 * @return
-	 * @throws NoSuchAlgorithmException
-	 * @throws IOException
-	 * @throws CertificateException
 	 */
 	public X509Certificate buildSelfsignedCertificate(
 			final X500Name issuer, final KeyPair keyPair)
@@ -1021,11 +1077,13 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
    * @param requestBytes
    * @return
    * @throws IOException
+   * @throws CRMFException
+   * @throws CMPException
    * @throws GeneralSecurityException
    */
   PKIBody readPKIBodyFromRequest( final byte[] requestBytes ) 
-    throws IOException,
-		  GeneralSecurityException {
+    throws IOException, CRMFException,
+    CMPException, GeneralSecurityException {
 
   final ASN1Primitive derObject = getDERObject(requestBytes);
   
@@ -1066,10 +1124,12 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
    * @param requestBytes
    * @return
    * @throws IOException
+   * @throws CRMFException
+   * @throws CMPException
    * @throws GeneralSecurityException
    */
 	PKIMessage readPKIMessageFromRequest(final byte[] requestBytes)
-			throws IOException,
+			throws IOException, CRMFException, CMPException,
 			GeneralSecurityException {
 
 		final ASN1Primitive derObject = getDERObject(requestBytes);
@@ -1161,24 +1221,25 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
     MacCalculator macCalculator = getMacCalculator(hmacSecret);
     ProtectedPKIMessage message = pbuilder.build(macCalculator);
     
-    org.bouncycastle.asn1.cmp.PKIMessage pkiMessage = message.toASN1Structure();
+    PKIMessage pkiMessage = message.toASN1Structure();
 
     return pkiMessage.getEncoded();
   }
 
-	/**
-	 * build a certificate from given parameter
-	 * @param issuer the name of the issuer
-	 * @param issuerKeyPair the key pair of the issuer
-	 * @param subject the subject of the certificate
-	 * @param issuerPKByteArr byte array to derive the subject public key info from
-	 * @param validityPeriodType validity period type
-	 * @param validityPeriod validity period
-	 * @return the created certificate
-	 * @throws NoSuchAlgorithmException
-	 * @throws CertificateException
-	 * @throws IOException
-	 */
+
+    /**
+     *
+     * @param issuer
+     * @param issuerKeyPair
+     * @param subject
+     * @param issuerPKByteArr
+     * @param validityPeriodType
+     * @param validityPeriod
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws CertificateException
+     * @throws IOException
+     */
 	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair, final X500Name subject, final byte[] issuerPKByteArr, int validityPeriodType, int validityPeriod)
 			throws NoSuchAlgorithmException, CertificateException, IOException {
 		
@@ -1217,7 +1278,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	 * @param validityPeriodType
 	 * @param validityPeriod
 	 * @return
-	 * @throws NoSuchAlgorithmException
+     * @throws NoSuchAlgorithmException X509 extension problem
 	 * @throws CertificateException
 	 * @throws IOException
 	 */
@@ -1270,7 +1331,8 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
    * @throws GeneralSecurityException
    */
   public byte[] buildRevocationResponse(final PKIMessage pkiMessageIn,
-			final String hmacSecret, X500Name issuer) throws Exception {
+			final String hmacSecret, X500Name issuer) throws IOException,
+			CRMFException, CMPException, GeneralSecurityException {
 
 //		pkiMessageIn.getHeader().
 		PKIStatusInfo status = new PKIStatusInfo( PKIStatus.revocationNotification);
@@ -1290,7 +1352,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 		MacCalculator macCalculator = getMacCalculator(hmacSecret);
 		ProtectedPKIMessage message = pbuilder.build(macCalculator);
 
-		org.bouncycastle.asn1.cmp.PKIMessage pkiMessage = message.toASN1Structure();
+		PKIMessage pkiMessage = message.toASN1Structure();
 
 		return pkiMessage.getEncoded();
 	}
@@ -1304,10 +1366,11 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
    * @throws IOException
    * @throws CRMFException
    * @throws CMPException
+   * @throws GeneralSecurityException
    */
   public byte[] buildErrorResponse(final PKIMessage pkiMessageIn,
 			final String hmacSecret, X500Name issuer) throws IOException,
-			CRMFException, CMPException {
+			CRMFException, CMPException, GeneralSecurityException {
 
 		PKIStatusInfo status = new PKIStatusInfo( PKIStatus.rejection);
 		ErrorMsgContent emc = new ErrorMsgContent(status);
@@ -1326,28 +1389,27 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 		MacCalculator macCalculator = getMacCalculator(hmacSecret);
 		ProtectedPKIMessage message = pbuilder.build(macCalculator);
 
-		org.bouncycastle.asn1.cmp.PKIMessage pkiMessage = message.toASN1Structure();
+		PKIMessage pkiMessage = message.toASN1Structure();
 
 		return pkiMessage.getEncoded();
 	}
 
 
-	/**
-	 *
-	 * @param responseBytes
-	 * @return
-	 * @throws IOException
-	 * @throws GeneralSecurityException
-	 */
-	public RevRepContent readRevResponse( final byte[] responseBytes )
-	          throws IOException,
-			GeneralSecurityException {
+    /**
+     *
+     * @param responseBytes
+     * @return
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
+    public RevRepContent readRevResponse( final byte[] responseBytes )
+	          throws IOException, GeneralSecurityException {
 	  
-		final ASN1Primitive derObject = getDERObject(responseBytes);
+        final ASN1Primitive derObject = getDERObject(responseBytes);
 	  
 	    final PKIMessage pkiMessage = PKIMessage.getInstance(derObject);
 	    if ( pkiMessage == null ) {
-	      throw new GeneralSecurityException("No CMP message could be parsed from received Der object.");
+	        throw new GeneralSecurityException("No CMP message could be parsed from received Der object.");
 	    }
 	  
 	    final PKIHeader header = pkiMessage.getHeader();
@@ -1408,18 +1470,18 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	    return null;
 	  }
 
-	/**
-	 *
-	 * @param responseBytes
-	 * @return
-	 * @throws IOException
-	 * @throws GeneralSecurityException
-	 */
+    /**
+     *
+     * @param responseBytes
+     * @return
+     * @throws IOException
+     * @throws GeneralSecurityException
+     */
 	  public GenMsgContent readGenMsgResponse( final byte[] responseBytes )
 	          throws IOException,
-			  GeneralSecurityException {
+              GeneralSecurityException {
 	  
-	    final ASN1Primitive derObject = getDERObject(responseBytes);
+	      final ASN1Primitive derObject = getDERObject(responseBytes);
 	  
 	    final PKIMessage pkiMessage = PKIMessage.getInstance(derObject);
 	    if ( pkiMessage == null ) {
@@ -1483,11 +1545,11 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	    return null;
 	  }
 
-	/**
-	 *
-	 * @param body
-	 * @throws UnrecoverableEntryException
-	 */
+
+  /**
+   * @param body
+   * @throws GeneralSecurityException
+   */
   private void handleCMPError(final PKIBody body)
       throws UnrecoverableEntryException {
 	  
@@ -1522,15 +1584,16 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
     throw new UnrecoverableEntryException(errMsg);
   }
 
-	/**
-	 *
-	 * @param hmacSecret
-	 * @return
-	 * @throws CRMFException
-	 * @throws CMPException
-	 */
+    /**
+     *
+     * @param hmacSecret
+     * @return
+     * @throws GeneralSecurityException
+     * @throws CRMFException
+     * @throws CMPException
+     */
   public PKIMessage buildGeneralMessageRequest(final String hmacSecret)
-          throws CRMFException, CMPException {
+          throws GeneralSecurityException, CRMFException, CMPException {
   
 	  InfoTypeAndValue[] itvArr = new InfoTypeAndValue[0];
 
@@ -1550,7 +1613,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	    MacCalculator macCalculator = getMacCalculator(hmacSecret);
 	    ProtectedPKIMessage message = pbuilder.build(macCalculator);
 	    
-	    org.bouncycastle.asn1.cmp.PKIMessage pkiMessage = message.toASN1Structure();
+	    PKIMessage pkiMessage = message.toASN1Structure();
 	  
 	    LOGGER.debug( "sender nonce : " + Base64.toBase64String( pkiMessage.getHeader().getSenderNonce().getOctets() ));
 	    
@@ -1558,16 +1621,16 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	    
   }
 
-	/**
-	 *
-	 * @param certReqId
-	 * @param subjectDN
-	 * @param certExtList
-	 * @param keyInfo
-	 * @param hmacSecret
-	 * @return the request PKIMessage
-	 * @throws GeneralSecurityException
-	 */
+    /**
+     *
+     * @param certReqId
+     * @param subjectDN
+     * @param certExtList
+     * @param keyInfo
+     * @param hmacSecret
+     * @return
+     * @throws GeneralSecurityException
+     */
   public PKIMessage buildCertRequest( long certReqId, final X500Name subjectDN, final Collection<Extension> certExtList, final SubjectPublicKeyInfo keyInfo, final String hmacSecret)
           throws GeneralSecurityException {
   
@@ -1610,7 +1673,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
       MacCalculator macCalculator = getMacCalculator(hmacSecret);
       ProtectedPKIMessage message = pbuilder.build(macCalculator);
   
-      org.bouncycastle.asn1.cmp.PKIMessage pkiMessage = message.toASN1Structure();
+      PKIMessage pkiMessage = message.toASN1Structure();
   
       return pkiMessage;
       
@@ -1622,7 +1685,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 
   public byte[] buildRevocationRequest( long certRevId, final X500Name issuerDN, final X500Name subjectDN, final BigInteger serial, final CRLReason crlReason, final String hmacSecret) 
           throws IOException, CRMFException,
-          CMPException {
+          CMPException, GeneralSecurityException {
   
   
     // Cert template too tell which cert we want to revoke
@@ -1654,7 +1717,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
     MacCalculator macCalculator = getMacCalculator(hmacSecret);
     ProtectedPKIMessage message = pbuilder.build(macCalculator);
     
-    org.bouncycastle.asn1.cmp.PKIMessage pkiMessage = message.toASN1Structure();
+    PKIMessage pkiMessage = message.toASN1Structure();
 
     if( LOGGER.isDebugEnabled() ){
     	LOGGER.debug( "sender nonce : " + Base64.toBase64String( pkiMessage.getHeader().getSenderNonce().getOctets() ));

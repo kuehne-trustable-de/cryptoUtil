@@ -1,4 +1,8 @@
+/**
+ * 
+ */
 package de.trustable.util;
+
 
 /**
  * define some generally useful test data

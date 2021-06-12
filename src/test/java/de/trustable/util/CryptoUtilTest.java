@@ -67,34 +67,41 @@ public class CryptoUtilTest {
   }
 
   @After
-  public void tearDown() {
+  public void tearDown()  {
   }
 
-  @Test
-  public void testParseCertificateRequest() throws Exception {
-    
-    try {
-      cryptoUtil.parseCertificateRequest(nonPEM_CSR);
-      fail( "GeneralSecurityException expected");
-    } catch (GeneralSecurityException e) {
-      assertEquals("Parsing of CSR failed! Not PEM encoded?", e.getMessage());
+    @Test
+    public void testLimitStringLength()  {
+        assertEquals("test", CryptoUtil.limitLength( "test", 10 ));
+        assertEquals("testtestte", CryptoUtil.limitLength( "testtesttest", 10 ));
+
+        assertEquals("", CryptoUtil.limitLength( null, 10 ));
     }
-    
-    try {
-      cryptoUtil.parseCertificateRequest(nonASCII_CSR);
-      fail( "GeneralSecurityException expected");
-    } catch (GeneralSecurityException e) {
-      assertEquals("Parsing of CSR failed! Not PEM encoded?", e.getMessage());
-    }
-    
-    try {
-      Pkcs10RequestHolder p10Req = cryptoUtil.parseCertificateRequest(TestData.SampleCSRBase64);
-      assertTrue( "expect test csr to be valid", p10Req.isCSRValid() );
-    } catch (GeneralSecurityException e) {
-      fail( "Parsable CSR, no GeneralSecurityException expected: " +e.getMessage());
-    }
-    
-    
+
+    @Test
+    public void testParseCertificateRequest() throws Exception {
+
+        try {
+          cryptoUtil.parseCertificateRequest(nonPEM_CSR);
+          fail( "GeneralSecurityException expected");
+        } catch (GeneralSecurityException e) {
+          assertEquals("Parsing of CSR failed! Not PEM encoded?", e.getMessage());
+        }
+
+        try {
+          cryptoUtil.parseCertificateRequest(nonASCII_CSR);
+          fail( "GeneralSecurityException expected");
+        } catch (GeneralSecurityException e) {
+          assertEquals("Parsing of CSR failed! Not PEM encoded?", e.getMessage());
+        }
+
+        try {
+          Pkcs10RequestHolder p10Req = cryptoUtil.parseCertificateRequest(TestData.SampleCSRBase64);
+          assertTrue( "expect test csr to be valid", p10Req.isCSRValid() );
+        } catch (GeneralSecurityException e) {
+          fail( "Parsable CSR, no GeneralSecurityException expected: " +e.getMessage());
+        }
+
   }
 
   @Test
@@ -132,15 +139,15 @@ public class CryptoUtilTest {
   String normalizeBase64String(final String inB64){
     
     char[] inArr = inB64.toCharArray();
-    StringBuilder sb = new StringBuilder();
-
-      for (char c : inArr) {
-          if (Character.isWhitespace(c)) {
-              // just ignore
-          } else {
-              sb.append(c);
-          }
+    StringBuffer sb = new StringBuffer();
+    
+    for( int i = 0; i < inArr.length; i++){
+      if( Character.isWhitespace( inArr[i] )){
+        // just ignore
+      } else {
+        sb.append(inArr[i]);
       }
+    }
     return sb.toString();
   }
   
@@ -169,7 +176,7 @@ public class CryptoUtilTest {
 
   
   @Test
-  public void testGetCrlReasonFromString() {
+  public void testGetCrlReasonFromString()  {
     
     assertEquals(CRLReason.keyCompromise, cryptoUtil.crlReasonFromString("1").getValue().intValue() );
     assertEquals(CRLReason.keyCompromise, cryptoUtil.crlReasonFromString("keyCompromise").getValue().intValue() );
@@ -190,7 +197,7 @@ public class CryptoUtilTest {
   }
   
   @Test
-  public void testGetCrlReasonAsString() {
+  public void testGetCrlReasonAsString()  {
     assertEquals("unspecified", cryptoUtil.crlReasonAsString(CRLReason.lookup(CRLReason.unspecified)));
     assertEquals("keyCompromise", cryptoUtil.crlReasonAsString(CRLReason.lookup(CRLReason.keyCompromise)));
     assertEquals("cACompromise", cryptoUtil.crlReasonAsString(CRLReason.lookup(CRLReason.cACompromise)));
@@ -204,8 +211,6 @@ public class CryptoUtilTest {
   /**
    * @throws IOException 
    * @throws GeneralSecurityException 
-   * @throws CMPException 
-   * @throws CRMFException 
    */
 	@Test
 	public final void testCertificateSigning() throws GeneralSecurityException, IOException {
