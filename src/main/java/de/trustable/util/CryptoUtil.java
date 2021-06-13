@@ -1243,7 +1243,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair, final X500Name subject, final byte[] issuerPKByteArr, int validityPeriodType, int validityPeriod)
 			throws NoSuchAlgorithmException, CertificateException, IOException {
 		
-		return issueCertificate(issuer, issuerKeyPair, subject, SubjectPublicKeyInfo.getInstance(issuerPKByteArr), validityPeriodType, validityPeriod, PKILevel.END_ENTITY);
+		return issueCertificate(issuer, issuerKeyPair, subject, SubjectPublicKeyInfo.getInstance(issuerPKByteArr), validityPeriodType, validityPeriod, null, PKILevel.END_ENTITY);
 
 	}
 
@@ -1264,10 +1264,33 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair, final X500Name subject, final byte[] issuerPKByteArr, int validityPeriodType, int validityPeriod, PKILevel pkiLevel)
 			throws NoSuchAlgorithmException, CertificateException, IOException {
 		
-		return issueCertificate(issuer, issuerKeyPair, subject, SubjectPublicKeyInfo.getInstance(issuerPKByteArr), validityPeriodType, validityPeriod, pkiLevel);
+		return issueCertificate(issuer, issuerKeyPair, subject, SubjectPublicKeyInfo.getInstance(issuerPKByteArr), validityPeriodType, validityPeriod, null, pkiLevel);
 
 	}
 
+	/**
+	 *
+	 * @param issuer
+	 * @param issuerKeyPair
+	 * @param subject
+	 * @param spkInfo
+	 * @param validityPeriodType
+	 * @param validityPeriod
+	 * @return
+	 * @throws NoSuchAlgorithmException X509 extension problem
+	 * @throws CertificateException
+	 * @throws IOException
+	 */
+	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair,
+											final X500Name subject,
+											SubjectPublicKeyInfo spkInfo,
+											int validityPeriodType,
+											int validityPeriod,
+											PKILevel pkiLevel)
+			throws NoSuchAlgorithmException, CertificateException, IOException {
+
+		return issueCertificate(issuer, issuerKeyPair, subject, spkInfo, validityPeriodType, validityPeriod, null, pkiLevel);
+	}
 
 	/**
 	 * 
@@ -1282,7 +1305,13 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	 * @throws CertificateException
 	 * @throws IOException
 	 */
-	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair, final X500Name subject, SubjectPublicKeyInfo spkInfo, int validityPeriodType, int validityPeriod, PKILevel pkiLevel)
+	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair,
+											final X500Name subject,
+											SubjectPublicKeyInfo spkInfo,
+											int validityPeriodType,
+											int validityPeriod,
+											GeneralNames subjectAltNames,
+											PKILevel pkiLevel)
 			throws NoSuchAlgorithmException, CertificateException, IOException {
 		
 		Date dateOfIssuing = new Date();              // time from which certificate is valid
@@ -1310,6 +1339,11 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 		}
 		
 		certBuilder.addExtension(Extension.keyUsage, true, usage);
+
+		if( subjectAltNames != null) {
+			certBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
+			LOGGER.debug("added #" + subjectAltNames.getNames().length + " sans");
+		}
 
 		certBuilder.addExtension(Extension.authorityKeyIdentifier, false, new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(issuerKeyPair.getPublic()) );
 		byte[] certBytes = certBuilder.build(new JCESigner(issuerKeyPair.getPrivate())).getEncoded();
