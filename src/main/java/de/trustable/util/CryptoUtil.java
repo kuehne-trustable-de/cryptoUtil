@@ -1,87 +1,13 @@
 package de.trustable.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
-import java.security.GeneralSecurityException;
-import java.security.KeyFactory;
-import java.security.KeyPair;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SecureRandom;
-import java.security.UnrecoverableEntryException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-
-import javax.security.auth.x500.X500Principal;
-
-import org.bouncycastle.asn1.ASN1EncodableVector;
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.ASN1OctetString;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.DERBitString;
-import org.bouncycastle.asn1.DERPrintableString;
-import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.cmp.CMPCertificate;
-import org.bouncycastle.asn1.cmp.CertOrEncCert;
-import org.bouncycastle.asn1.cmp.CertRepMessage;
-import org.bouncycastle.asn1.cmp.CertResponse;
-import org.bouncycastle.asn1.cmp.CertifiedKeyPair;
-import org.bouncycastle.asn1.cmp.ErrorMsgContent;
-import org.bouncycastle.asn1.cmp.GenMsgContent;
-import org.bouncycastle.asn1.cmp.InfoTypeAndValue;
-import org.bouncycastle.asn1.cmp.PKIBody;
-import org.bouncycastle.asn1.cmp.PKIFreeText;
-import org.bouncycastle.asn1.cmp.PKIHeader;
-import org.bouncycastle.asn1.cmp.PKIMessage;
-import org.bouncycastle.asn1.cmp.PKIStatus;
-import org.bouncycastle.asn1.cmp.PKIStatusInfo;
-import org.bouncycastle.asn1.cmp.RevDetails;
-import org.bouncycastle.asn1.cmp.RevRepContent;
-import org.bouncycastle.asn1.cmp.RevRepContentBuilder;
-import org.bouncycastle.asn1.cmp.RevReqContent;
-import org.bouncycastle.asn1.crmf.AttributeTypeAndValue;
-import org.bouncycastle.asn1.crmf.CertId;
-import org.bouncycastle.asn1.crmf.CertReqMessages;
-import org.bouncycastle.asn1.crmf.CertReqMsg;
-import org.bouncycastle.asn1.crmf.CertRequest;
-import org.bouncycastle.asn1.crmf.CertTemplate;
-import org.bouncycastle.asn1.crmf.CertTemplateBuilder;
+import com.puppetlabs.ssl_utils.ExtensionsUtils;
+import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.cmp.*;
+import org.bouncycastle.asn1.crmf.*;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.CRLReason;
-import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.Extensions;
-import org.bouncycastle.asn1.x509.ExtensionsGenerator;
-import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.KeyPurposeId;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.cert.CertIOException;
+import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.cmp.CMPException;
@@ -110,7 +36,16 @@ import org.bouncycastle.util.encoders.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.puppetlabs.ssl_utils.ExtensionsUtils;
+import javax.security.auth.x500.X500Principal;
+import java.io.*;
+import java.math.BigInteger;
+import java.security.*;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.*;
 
 
 public class CryptoUtil {
@@ -1243,7 +1178,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair, final X500Name subject, final byte[] issuerPKByteArr, int validityPeriodType, int validityPeriod)
 			throws NoSuchAlgorithmException, CertificateException, IOException {
 		
-		return issueCertificate(issuer, issuerKeyPair, subject, SubjectPublicKeyInfo.getInstance(issuerPKByteArr), validityPeriodType, validityPeriod, null, PKILevel.END_ENTITY);
+		return issueCertificate(issuer, issuerKeyPair, subject, SubjectPublicKeyInfo.getInstance(issuerPKByteArr), validityPeriodType, validityPeriod, null, null, PKILevel.END_ENTITY);
 
 	}
 
@@ -1264,7 +1199,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair, final X500Name subject, final byte[] issuerPKByteArr, int validityPeriodType, int validityPeriod, PKILevel pkiLevel)
 			throws NoSuchAlgorithmException, CertificateException, IOException {
 		
-		return issueCertificate(issuer, issuerKeyPair, subject, SubjectPublicKeyInfo.getInstance(issuerPKByteArr), validityPeriodType, validityPeriod, null, pkiLevel);
+		return issueCertificate(issuer, issuerKeyPair, subject, SubjectPublicKeyInfo.getInstance(issuerPKByteArr), validityPeriodType, validityPeriod, null, null, pkiLevel);
 
 	}
 
@@ -1289,7 +1224,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 											PKILevel pkiLevel)
 			throws NoSuchAlgorithmException, CertificateException, IOException {
 
-		return issueCertificate(issuer, issuerKeyPair, subject, spkInfo, validityPeriodType, validityPeriod, null, pkiLevel);
+		return issueCertificate(issuer, issuerKeyPair, subject, spkInfo, validityPeriodType, validityPeriod, null, null, pkiLevel);
 	}
 
 	/**
@@ -1305,12 +1240,14 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 	 * @throws CertificateException
 	 * @throws IOException
 	 */
-	public X509Certificate issueCertificate(X500Name issuer, KeyPair issuerKeyPair,
+	public X509Certificate issueCertificate(X500Name issuer,
+											KeyPair issuerKeyPair,
 											final X500Name subject,
 											SubjectPublicKeyInfo spkInfo,
 											int validityPeriodType,
 											int validityPeriod,
 											GeneralNames subjectAltNames,
+											List<Map<String, Object>> extensions,
 											PKILevel pkiLevel)
 			throws NoSuchAlgorithmException, CertificateException, IOException {
 		
@@ -1320,7 +1257,7 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 		Date dateOfExpiry = expiryCal.getTime();
 		
 
-		BigInteger serialNumber = BigInteger.valueOf( new Random().nextLong()).abs();
+		BigInteger serialNumber = BigInteger.valueOf( secRandom.nextLong()).abs();
 		
 		LOGGER.debug("certification request for subject '" + subject + "'");
 		
@@ -1339,6 +1276,17 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
 		}
 		
 		certBuilder.addExtension(Extension.keyUsage, true, usage);
+
+		if ((extensions != null) && (extensions.size() > 0)) {
+			Extensions parsedExts = null;
+			try {
+				parsedExts = ExtensionsUtils.getExtensionsObjFromMap(extensions);
+				certBuilder.addExtension(parsedExts.getExtension(Extension.extendedKeyUsage));
+			} catch (GeneralSecurityException e) {
+				LOGGER.debug("problem parsing requested extensions", e);
+				throw new CertificateException(e.getMessage());
+			}
+		}
 
 		if( subjectAltNames != null) {
 			certBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
