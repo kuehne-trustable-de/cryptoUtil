@@ -7,8 +7,10 @@
 	<groupId>de.trustable</groupId>
 	<artifactId>cryptoUtil</artifactId>
 	<version>1.1.12</version>
+	
 	<name>cryptoUtil</name>
-
+        <description>Crypto Utils</description>
+	<url>https://github.com/kuehne-trustable-de/cryptoUtil/</url>
 
 	<licenses>
 		<license>
@@ -32,6 +34,11 @@
 		</developer>
 	</developers>
 
+        <scm>
+		<connection>https://github.com/kuehne-trustable-de/cryptoUtil.git</connection>
+		<developerConnection>https://github.com/kuehne-trustable-de/cryptoUtil.git</developerConnection>
+		<url>https://github.com/kuehne-trustable-de/cryptoUtil.git</url>
+	</scm>
   	
 	<properties>
 
