@@ -284,12 +284,12 @@ public class CryptoUtilTest {
   @Test
   public final void testCMPRevocationRequest() throws IOException, GeneralSecurityException, CRMFException, CMPException {
 
-    byte[] cmpResp = cryptoUtil.handleCMPRequest("alias", "", Base64.decode(TestData.ValidCMPRevocationRequestBase64), issuingCertificate, issuer, keyPair); 
+    byte[] cmpResp = cryptoUtil.handleCMPRequest("alias", "s3cr3t", Base64.decode(TestData.ValidCMPRevocationRequestBase64), issuingCertificate, issuer, keyPair);
     
     assertNotNull("Expected a byte array as cmp response", cmpResp);
     assertTrue("Expected a byte array as cmp response", cmpResp.length > 123);
     
-    RevRepContent revRep = cryptoUtil.readRevResponse( cmpResp);
+    RevRepContent revRep = cryptoUtil.readRevResponse(cmpResp, "s3cr3t");
     
     assertNotNull("Expected a revocation response", revRep );
     

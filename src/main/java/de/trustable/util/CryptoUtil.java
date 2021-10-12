@@ -11,6 +11,7 @@ import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.cmp.CMPException;
+import org.bouncycastle.cert.cmp.GeneralPKIMessage;
 import org.bouncycastle.cert.cmp.ProtectedPKIMessage;
 import org.bouncycastle.cert.cmp.ProtectedPKIMessageBuilder;
 import org.bouncycastle.cert.crmf.CRMFException;
@@ -897,25 +898,31 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
         return pbuilder;
       }
 
+	/**
+	 * build a PKMACBuilder
+	 * @throws CRMFException creation of the calculator failed
+	 * @return the PKMACBuilder object withdefault algorithms
+	 */
+	public PKMACBuilder getMacCalculatorBuilder() throws CRMFException {
 
-    /**
-     * 
-     * @param hmacSecret the secret the HMAC
-     * @return an initialized MAC calculator
-     * @throws CRMFException a message related exception
-     */
-	public MacCalculator getMacCalculator(final String hmacSecret)
-            throws CRMFException {
-		
 		JcePKMACValuesCalculator jcePkmacCalc = new JcePKMACValuesCalculator();
-		final AlgorithmIdentifier digAlg = new AlgorithmIdentifier(
-				new ASN1ObjectIdentifier("1.3.14.3.2.26")); // SHA1
-		final AlgorithmIdentifier macAlg = new AlgorithmIdentifier(
-				new ASN1ObjectIdentifier("1.2.840.113549.2.7")); // HMAC/SHA1
+		final AlgorithmIdentifier digAlg = new AlgorithmIdentifier(new ASN1ObjectIdentifier("1.3.14.3.2.26")); // SHA1
+		final AlgorithmIdentifier macAlg = new AlgorithmIdentifier(new ASN1ObjectIdentifier("1.2.840.113549.2.7")); // HMAC/SHA1
 		jcePkmacCalc.setup(digAlg, macAlg);
-		PKMACBuilder macbuilder = new PKMACBuilder(jcePkmacCalc);
-		return macbuilder .build(hmacSecret.toCharArray());
+		return new PKMACBuilder(jcePkmacCalc);
 	}
+
+	/**
+	 * build a HMAC  calculator from a given secret
+	 * @param hmacSecret the given secret for this connection
+	 * @return the HMACCalculator object
+	 * @throws CRMFException creation of the calculator failed
+	 */
+	public MacCalculator getMacCalculator(final String hmacSecret) throws CRMFException {
+		PKMACBuilder macbuilder = getMacCalculatorBuilder();
+		return macbuilder.build(hmacSecret.toCharArray());
+	}
+
 
 	/**
 	 * @deprecated
@@ -1018,26 +1025,35 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 }
 
 
-/**
- * @param pkiMessage
- * @return
- */
-private void printPKIMessageInfo(final PKIMessage pkiMessage) {
-	
-	final PKIHeader header = pkiMessage.getHeader();
-	  final PKIBody body = pkiMessage.getBody();
-	  
-	  int tagno = body.getType();
-	  if( LOGGER.isDebugEnabled()){
-		  LOGGER.debug("Received CMP message with pvno=" + header.getPvno()
-		      + ", sender=" + header.getSender().toString() + ", recipient="
-		      + header.getRecipient().toString());
-		  LOGGER.debug("Body is of type: " + tagno);
-		  LOGGER.debug("Transaction id: " + header.getTransactionID());
-	  }
-}
-  
-  /**
+	private void printPKIMessageInfo(final PKIMessage pkiMessage) {
+
+		final PKIHeader header = pkiMessage.getHeader();
+		final PKIBody body = pkiMessage.getBody();
+
+		if( LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Received CMP message with pvno=" + header.getPvno() + ", sender="
+					+ header.getSender().toString() + ", recipient=" + header.getRecipient().toString());
+
+			LOGGER.debug("Body is of type: " + body.getType());
+			LOGGER.debug("Transaction id: " + header.getTransactionID());
+		}
+	}
+
+	private void printPKIMessageInfo(final GeneralPKIMessage pkiMessage) {
+
+		final PKIHeader header = pkiMessage.getHeader();
+		final PKIBody body = pkiMessage.getBody();
+
+		if( LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Received " + (pkiMessage.hasProtection() ? " protected " : "") + "CMP message with pvno=" + header.getPvno() + ", sender="
+					+ header.getSender().toString() + ", recipient=" + header.getRecipient().toString());
+
+			LOGGER.debug("Body is of type: " + body.getType());
+			LOGGER.debug("Transaction id: " + header.getTransactionID());
+		}
+	}
+
+	/**
    * 
    * @param requestBytes
    * @return
@@ -1363,15 +1379,10 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
      * @throws IOException
      * @throws GeneralSecurityException
      */
-    public RevRepContent readRevResponse( final byte[] responseBytes )
-	          throws IOException, GeneralSecurityException {
-	  
-        final ASN1Primitive derObject = getDERObject(responseBytes);
-	  
-	    final PKIMessage pkiMessage = PKIMessage.getInstance(derObject);
-	    if ( pkiMessage == null ) {
-	        throw new GeneralSecurityException("No CMP message could be parsed from received Der object.");
-	    }
+    public RevRepContent readRevResponse( final byte[] responseBytes, final String plainSecret )
+			throws IOException, GeneralSecurityException, CMPException {
+
+		GeneralPKIMessage pkiMessage = buildPKIMessage(responseBytes, plainSecret);
 	  
 	    final PKIHeader header = pkiMessage.getHeader();
 	    
@@ -1438,11 +1449,14 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
      * @throws IOException
      * @throws GeneralSecurityException
      */
-	  public GenMsgContent readGenMsgResponse( final byte[] responseBytes )
+	  public GenMsgContent readGenMsgResponse( final byte[] responseBytes, final String plainSecret )
 	          throws IOException,
               GeneralSecurityException {
-	  
-	      final ASN1Primitive derObject = getDERObject(responseBytes);
+
+		// validate protected messages
+		buildPKIMessage(responseBytes, plainSecret);
+
+	  	final ASN1Primitive derObject = getDERObject(responseBytes);
 	  
 	    final PKIMessage pkiMessage = PKIMessage.getInstance(derObject);
 	    if ( pkiMessage == null ) {
@@ -1689,6 +1703,29 @@ private void printPKIMessageInfo(final PKIMessage pkiMessage) {
   }
 
 
-  
-  
+	private GeneralPKIMessage buildPKIMessage(byte[] responseBytes, final String plainSecret) throws IOException,  GeneralSecurityException {
+
+
+		GeneralPKIMessage generalPKIMessage = new GeneralPKIMessage(responseBytes);
+		printPKIMessageInfo(generalPKIMessage);
+		if (generalPKIMessage.hasProtection()) {
+			ProtectedPKIMessage protectedPKIMsg = new ProtectedPKIMessage(generalPKIMessage);
+
+			try {
+				if (protectedPKIMsg.verify(getMacCalculatorBuilder(), plainSecret.toCharArray())) {
+					LOGGER.debug("received response message verified successfully by HMAC");
+				} else {
+					throw new GeneralSecurityException("received response message failed verification (by HMAC)!");
+				}
+			}catch(CRMFException | CMPException ex){
+				throw new GeneralSecurityException(ex);
+			}
+		} else {
+			LOGGER.info("received response message contains NO content protection!");
+		}
+		return generalPKIMessage;
+	}
+
+
+
 }

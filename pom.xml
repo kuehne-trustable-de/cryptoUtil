@@ -6,10 +6,10 @@
 	
 	<groupId>de.trustable</groupId>
 	<artifactId>cryptoUtil</artifactId>
-	<version>1.1.12</version>
+	<version>1.2.0</version>
 	
 	<name>cryptoUtil</name>
-        <description>Crypto Utils</description>
+    <description>Crypto Utils</description>
 	<url>https://github.com/kuehne-trustable-de/cryptoUtil/</url>
 
 	<licenses>
@@ -34,18 +34,19 @@
 		</developer>
 	</developers>
 
-        <scm>
+	<scm>
 		<connection>https://github.com/kuehne-trustable-de/cryptoUtil.git</connection>
 		<developerConnection>https://github.com/kuehne-trustable-de/cryptoUtil.git</developerConnection>
 		<url>https://github.com/kuehne-trustable-de/cryptoUtil.git</url>
 	</scm>
-  	
+
+
 	<properties>
 
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
-		<bouncyCastleVersion>1.68</bouncyCastleVersion>
+		<bouncyCastleVersion>1.69</bouncyCastleVersion>
 		<cryptacularVersion>1.2.4</cryptacularVersion>
 		<jasyptVersion>1.9.3</jasyptVersion>
 		<commonsCodecVersion>1.10</commonsCodecVersion>
@@ -64,8 +65,8 @@
     	<license.licenseName>apache_v2</license.licenseName>
     	<license.inceptionYear>2016</license.inceptionYear>
     	<license.organizationName>Andreas Kuehne</license.organizationName>
-    	
-    	<dependencyCheck.version>6.2.2</dependencyCheck.version>
+
+		<dependencyCheck.version>6.4.1</dependencyCheck.version>
         <dependencyCheck.skip>false</dependencyCheck.skip>
     	
 	</properties>
@@ -221,7 +222,6 @@
 		</repository>
 		
 	</repositories>
-
 
 	<distributionManagement>
 		<repository>
