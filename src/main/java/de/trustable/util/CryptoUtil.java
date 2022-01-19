@@ -1225,15 +1225,18 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 	}
 
 	/**
-	 * 
+	 *
 	 * @param issuer
 	 * @param issuerKeyPair
 	 * @param subject
 	 * @param spkInfo
 	 * @param validityPeriodType
 	 * @param validityPeriod
+	 * @param subjectAltNames
+	 * @param extensions
+	 * @param pkiLevel
 	 * @return
-     * @throws NoSuchAlgorithmException X509 extension problem
+	 * @throws NoSuchAlgorithmException X509 extension problem
 	 * @throws CertificateException
 	 * @throws IOException
 	 */
@@ -1265,11 +1268,14 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 		    spkInfo);
 
 		// Key usage for end entity
-		KeyUsage usage = new KeyUsage( KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment );
+		KeyUsage usage;
 
 		if( PKILevel.ROOT.equals(pkiLevel) || PKILevel.INTERMEDIATE.equals(pkiLevel)) {
 			certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
 			usage = new KeyUsage(KeyUsage.digitalSignature | KeyUsage.keyCertSign);
+		}else{
+			certBuilder.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
+			usage = new KeyUsage(KeyUsage.digitalSignature | KeyUsage.nonRepudiation | KeyUsage.keyEncipherment);
 		}
 		
 		certBuilder.addExtension(Extension.keyUsage, true, usage);
@@ -1290,7 +1296,13 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 			LOGGER.debug("added #" + subjectAltNames.getNames().length + " sans");
 		}
 
-		certBuilder.addExtension(Extension.authorityKeyIdentifier, false, new JcaX509ExtensionUtils().createAuthorityKeyIdentifier(issuerKeyPair.getPublic()) );
+		JcaX509ExtensionUtils x509ExtensionUtils = new JcaX509ExtensionUtils();
+		certBuilder.addExtension(Extension.subjectKeyIdentifier, false, x509ExtensionUtils.createSubjectKeyIdentifier(spkInfo));
+
+		if( !PKILevel.ROOT.equals(pkiLevel)) {
+			certBuilder.addExtension(Extension.authorityKeyIdentifier, false, x509ExtensionUtils.createAuthorityKeyIdentifier(issuerKeyPair.getPublic()));
+		}
+
 		byte[] certBytes = certBuilder.build(new JCESigner(issuerKeyPair.getPrivate())).getEncoded();
 		
 		CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
@@ -1306,11 +1318,10 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
    * @throws IOException
    * @throws CRMFException
    * @throws CMPException
-   * @throws GeneralSecurityException
    */
   public byte[] buildRevocationResponse(final PKIMessage pkiMessageIn,
 			final String hmacSecret, X500Name issuer) throws IOException,
-			CRMFException, CMPException, GeneralSecurityException {
+			CRMFException, CMPException {
 
 //		pkiMessageIn.getHeader().
 		PKIStatusInfo status = new PKIStatusInfo( PKIStatus.revocationNotification);
@@ -1380,7 +1391,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
      * @throws GeneralSecurityException
      */
     public RevRepContent readRevResponse( final byte[] responseBytes, final String plainSecret )
-			throws IOException, GeneralSecurityException, CMPException {
+			throws IOException, GeneralSecurityException {
 
 		GeneralPKIMessage pkiMessage = buildPKIMessage(responseBytes, plainSecret);
 	  
@@ -1620,43 +1631,40 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
   
     // propose an issuer ???
     msgbuilder.setIssuer(issuerDN);
-    
-    
-    try{
-      for( Extension ext : certExtList ){
-        
-          LOGGER.debug("Csr Extension : " + ext.getExtnId().getId() + " -> " + ext.getExtnValue() );
-          
-          boolean critical = false;
-        msgbuilder.addExtension(ext.getExtnId(), critical, ext.getParsedValue() );
-      }
-      
-      msgbuilder.setPublicKey(keyInfo);
-      GeneralName sender = new GeneralName(subjectDN);
-      msgbuilder.setAuthInfoSender(sender);
-  
-      // RAVerified POP
-      msgbuilder.setProofOfPossessionRaVerified();
-    
-      CertificateRequestMessage msg = msgbuilder.build();
-      
-      LOGGER.debug("CertTemplate : " + msg.getCertTemplate() );
-      
-      ProtectedPKIMessageBuilder pbuilder = getPKIBuilder(issuerDN, subjectDN);
-      
-      CertReqMessages msgs = new CertReqMessages(msg.toASN1Structure());
-      PKIBody pkibody = new PKIBody(PKIBody.TYPE_INIT_REQ, msgs);
-      pbuilder.setBody(pkibody);
-      
-      MacCalculator macCalculator = getMacCalculator(hmacSecret);
-      ProtectedPKIMessage message = pbuilder.build(macCalculator);
 
-		return message.toASN1Structure();
-      
-    }  catch(CRMFException | CMPException | IOException crmfe){
-        LOGGER.warn("Exception occured processing extensions", crmfe );
-      throw new GeneralSecurityException(crmfe.getMessage());
-    }
+	  try {
+		  for (Extension ext : certExtList) {
+			  LOGGER.debug("Csr Extension : " + ext.getExtnId().getId() + " -> " + ext.getExtnValue());
+			  boolean critical = ext.isCritical();
+			  msgbuilder.addExtension(ext.getExtnId(), critical, ext.getParsedValue());
+		  }
+
+		  msgbuilder.setPublicKey(keyInfo);
+		  GeneralName sender = new GeneralName(subjectDN);
+		  msgbuilder.setAuthInfoSender(sender);
+
+		  // RAVerified POP
+		  msgbuilder.setProofOfPossessionRaVerified();
+
+		  CertificateRequestMessage msg = msgbuilder.build();
+
+		  LOGGER.debug("CertTemplate : " + msg.getCertTemplate());
+
+		  ProtectedPKIMessageBuilder pbuilder = getPKIBuilder(issuerDN, subjectDN);
+
+		  CertReqMessages msgs = new CertReqMessages(msg.toASN1Structure());
+		  PKIBody pkibody = new PKIBody(PKIBody.TYPE_INIT_REQ, msgs);
+		  pbuilder.setBody(pkibody);
+
+		  MacCalculator macCalculator = getMacCalculator(hmacSecret);
+		  ProtectedPKIMessage message = pbuilder.build(macCalculator);
+
+		  return message.toASN1Structure();
+
+	  } catch (CRMFException | CMPException | IOException crmfe) {
+		  LOGGER.warn("Exception occured processing extensions", crmfe);
+		  throw new GeneralSecurityException(crmfe.getMessage());
+	  }
   }
 
   public byte[] buildRevocationRequest( long certRevId, final X500Name issuerDN, final X500Name subjectDN, final BigInteger serial, final CRLReason crlReason, final String hmacSecret) 
