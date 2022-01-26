@@ -7,6 +7,7 @@ import java.security.PrivateKey;
 import java.security.Signature;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.operator.ContentSigner;
 import org.slf4j.Logger;
@@ -16,10 +17,10 @@ public class JCESigner implements ContentSigner {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JCESigner.class);
 
-    private static final AlgorithmIdentifier PKCS1_SHA256_WITH_RSA_OID = new AlgorithmIdentifier(new ASN1ObjectIdentifier("1.2.840.113549.1.1.11"));
+    private static final AlgorithmIdentifier PKCS1_SHA256_WITH_RSA_OID = new AlgorithmIdentifier(new ASN1ObjectIdentifier("1.2.840.113549.1.1.11"), DERNull.INSTANCE);
 
-    private Signature signature;
-    private ByteArrayOutputStream outputStream;
+    private final Signature signature;
+    private final ByteArrayOutputStream outputStream;
 
     public JCESigner(PrivateKey privateKey ) {
 
