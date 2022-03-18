@@ -6,6 +6,7 @@ import org.bouncycastle.asn1.cmp.*;
 import org.bouncycastle.asn1.crmf.*;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.pkcs.RSASSAPSSparams;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CertificateHolder;
@@ -21,6 +22,9 @@ import org.bouncycastle.cert.crmf.PKMACBuilder;
 import org.bouncycastle.cert.crmf.jcajce.JcePKMACValuesCalculator;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
+import org.bouncycastle.cms.CMSException;
+import org.bouncycastle.cms.CMSSignedData;
+import org.bouncycastle.cms.SignerInformation;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
@@ -160,8 +164,17 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 		reqHolder.setSubject(subject.toString());
 
 		reqHolder.setReqAttributes(reqHolder.getP10Req().getAttributes());
-		
+
 		String signingAlgorithm = reqHolder.getP10Req().getSignatureAlgorithm().getAlgorithm().getId();
+		AlgorithmInfo algorithmInfo = new AlgorithmInfo(signingAlgorithm);
+		if( PKCSObjectIdentifiers.id_RSASSA_PSS.equals(reqHolder.getP10Req().getSignatureAlgorithm().getAlgorithm()) ) {
+			RSASSAPSSparams rsassapssParams = RSASSAPSSparams.getInstance(reqHolder.getP10Req().getSignatureAlgorithm().getParameters());
+			LOGGER.info("rsassapsSparams : " + rsassapssParams.getHashAlgorithm().getAlgorithm().getId());
+			algorithmInfo = new AlgorithmInfo(rsassapssParams);
+		}
+
+		reqHolder.setAlgorithmInfo(algorithmInfo);
+
 		reqHolder.setSigningAlgorithm(signingAlgorithm);
 		reqHolder.setSigningAlgorithmName(OidNameMapper.lookupOid(signingAlgorithm));
 
@@ -190,9 +203,14 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
 			reqHolder.setCSRValid(reqHolder.getP10Req().isSignatureValid(contentVerifierProvider));
 
+			LOGGER.info("p10Request.getSignature() : \n" + Base64.toBase64String( p10Request.getSignature()));
+
+			LOGGER.info("SubjectPublicKeyInfo().getAlgorithm() : " + p10Request.getSubjectPublicKeyInfo().getAlgorithm().getAlgorithm().getId());
+
 		} catch (OperatorCreationException e1) {
 			LOGGER.info("Problem processing the incoming csr", e1);
 			throw new GeneralSecurityException(e1.getMessage());
+//		} catch (PKCSException | CMSException e) {
 		} catch (PKCSException e) {
 			LOGGER.info("Problem parsing the incoming csr", e);
 			throw new GeneralSecurityException(e.getMessage());

@@ -1,25 +1,5 @@
 package de.trustable.util;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.Principal;
-import java.security.PublicKey;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateNotYetValidException;
-import java.security.cert.X509Certificate;
-import java.util.Calendar;
-import java.util.Date;
-
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DLSequence;
 import org.bouncycastle.asn1.cmp.PKIMessage;
@@ -34,7 +14,16 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import de.trustable.util.TestData;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.security.*;
+import java.security.cert.CertificateExpiredException;
+import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.X509Certificate;
+import java.util.Calendar;
+import java.util.Date;
+
+import static org.junit.Assert.*;
 
 public class CryptoUtilTest {
 
@@ -104,20 +93,48 @@ public class CryptoUtilTest {
 
   }
 
-  @Test
-  public void testGetPublicKeyFromCSR() throws IOException {
-    
-    try {
-      Pkcs10RequestHolder p10ReqHolder = cryptoUtil.parseCertificateRequest(TestData.SampleCSRBase64);
-      PublicKey pk = cryptoUtil.getPublicKeyFromCSR(p10ReqHolder.getP10Req());
-      assertNotNull( "expect test csr to contain a public key", pk );
-    } catch (GeneralSecurityException e) {
-      fail( "Parsable valid CSR, no GeneralSecurityException expected: " +e.getMessage());
-    }    
-    
-  }
+    @Test
+    public void testGetSigningAlgorithmFromCSR() throws IOException {
 
-  @Test
+        try {
+            Pkcs10RequestHolder p10ReqHolder = cryptoUtil.parseCertificateRequest(TestData.SampleCSRBase64);
+
+            assertEquals( "sha1WithRSAEncryption", p10ReqHolder.getSigningAlgorithmName());
+            assertEquals( "1.2.840.113549.1.1.1", p10ReqHolder.getPublicKeyAlgorithm());
+            assertEquals( "1.2.840.113549.1.1.5", p10ReqHolder.getSigningAlgorithm());
+        } catch (GeneralSecurityException e) {
+            fail( "Parsable valid CSR, no GeneralSecurityException expected: " +e.getMessage());
+        }
+    }
+
+    @Test
+    public void testGetSigningAlgorithmFromPSSCSR() throws IOException {
+
+        try {
+            Pkcs10RequestHolder p10ReqHolder = cryptoUtil.parseCertificateRequest(TestData.SamplePSSCSRBase64);
+
+            assertEquals( "rsaPSS", p10ReqHolder.getSigningAlgorithmName());
+            assertEquals( "1.2.840.113549.1.1.1", p10ReqHolder.getPublicKeyAlgorithm());
+            assertEquals( "1.2.840.113549.1.1.10", p10ReqHolder.getSigningAlgorithm());
+        } catch (GeneralSecurityException e) {
+            fail( "Parsable valid CSR, no GeneralSecurityException expected: " +e.getMessage());
+        }
+    }
+
+    @Test
+    public void testGetPublicKeyFromCSR() throws IOException {
+
+        try {
+            Pkcs10RequestHolder p10ReqHolder = cryptoUtil.parseCertificateRequest(TestData.SampleCSRBase64);
+            PublicKey pk = cryptoUtil.getPublicKeyFromCSR(p10ReqHolder.getP10Req());
+            assertNotNull( "expect test csr to contain a public key", pk );
+        } catch (GeneralSecurityException e) {
+            fail( "Parsable valid CSR, no GeneralSecurityException expected: " +e.getMessage());
+        }
+
+    }
+
+    @Test
   public void testX509CertToPem() throws IOException {
     
     try {
