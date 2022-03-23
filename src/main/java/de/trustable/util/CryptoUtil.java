@@ -602,15 +602,38 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
      * @throws IOException problem creating the csr
      * @throws GeneralSecurityException some security problem occurred
      */
-    public static PKCS10CertificationRequest getCsr(X500Principal subject,
-            PublicKey pubKey, 
-            PrivateKey priKey, 
-            char[] password,
-            List<Map<String, Object>> extensions)
-            throws GeneralSecurityException, IOException {
-    	
-    	return getCsr(subject,pubKey, priKey, password,extensions, null);
-    }
+	public static PKCS10CertificationRequest getCsr(X500Principal subject,
+													PublicKey pubKey,
+													PrivateKey priKey,
+													char[] password,
+													List<Map<String, Object>> extensions)
+			throws GeneralSecurityException, IOException {
+
+		return getCsr(subject,pubKey, priKey, password,extensions, null);
+	}
+
+	/**
+	 *
+	 * @param subject the subject of the certificate as X500Principal
+	 * @param pubKey the public ky to be signed
+	 * @param priKey the corresponding private key
+	 * @param password the PKCS#10 password
+	 * @param extensions a list of attributes
+	 * @param sanArray list of SANs
+	 * @return CSR content as PKCS#10 object
+	 * @throws IOException problem creating the csr
+	 * @throws GeneralSecurityException some security problem occurred
+	 */
+	public static PKCS10CertificationRequest getCsr(X500Principal subject,
+													PublicKey pubKey,
+													PrivateKey priKey,
+													char[] password,
+													List<Map<String, Object>> extensions,
+													GeneralName[] sanArray)
+			throws GeneralSecurityException, IOException {
+
+		return getCsr(subject,pubKey, priKey, password,extensions, null, "SHA256WithRSAEncryption");
+	}
 
     /**
      *
@@ -619,7 +642,8 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
      * @param priKey the corresponding private key
      * @param password the PKCS#10 password
      * @param extensions a list of attributes
-     * @param sanArray list of SANs
+	 * @param sanArray list of SANs
+	 * @param signingAlgorithmName Name of the signing algorithm to be used
      * @return CSR content as PKCS#10 object
      * @throws IOException problem creating the csr
      * @throws GeneralSecurityException some security problem occurred
@@ -629,13 +653,14 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
                 PrivateKey priKey, 
                 char[] password,
                 List<Map<String, Object>> extensions,
-                GeneralName[] sanArray)
+                GeneralName[] sanArray,
+				String signingAlgorithmName)
                 throws GeneralSecurityException, IOException {
       
         SubjectPublicKeyInfo pkInfo = SubjectPublicKeyInfo.getInstance(pubKey
                 .getEncoded());
 
-        JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder("SHA1withRSA");
+        JcaContentSignerBuilder signerBuilder = new JcaContentSignerBuilder(signingAlgorithmName);
         ContentSigner signer;
         try {
             signer = signerBuilder.build(priKey);
