@@ -632,7 +632,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 													GeneralName[] sanArray)
 			throws GeneralSecurityException, IOException {
 
-		return getCsr(subject,pubKey, priKey, password,extensions, null, "SHA256WithRSAEncryption");
+		return getCsr(subject,pubKey, priKey, password,extensions, sanArray, "SHA256WithRSAEncryption");
 	}
 
     /**
