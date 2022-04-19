@@ -22,9 +22,6 @@ import org.bouncycastle.cert.crmf.PKMACBuilder;
 import org.bouncycastle.cert.crmf.jcajce.JcePKMACValuesCalculator;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
-import org.bouncycastle.cms.CMSException;
-import org.bouncycastle.cms.CMSSignedData;
-import org.bouncycastle.cms.SignerInformation;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
@@ -58,7 +55,8 @@ public class CryptoUtil {
 
   private static final String SERIAL_PADDING_PATTERN = "000000000000000000000";
 
-private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
+	private static final Logger LOGGERContentProtection = LoggerFactory.getLogger(CryptoUtil.class.getName() + ".ContentProtection");
 
 
     SecureRandom secRandom = new SecureRandom();
@@ -1764,7 +1762,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 
 			try {
 				if (protectedPKIMsg.verify(getMacCalculatorBuilder(), plainSecret.toCharArray())) {
-					LOGGER.debug("received response message verified successfully by HMAC");
+					LOGGERContentProtection.debug("received response message verified successfully by HMAC");
 				} else {
 					throw new GeneralSecurityException("received response message failed verification (by HMAC)!");
 				}
@@ -1772,7 +1770,7 @@ private static final Logger LOGGER = LoggerFactory.getLogger(CryptoUtil.class);
 				throw new GeneralSecurityException(ex);
 			}
 		} else {
-			LOGGER.info("received response message contains NO content protection!");
+			LOGGERContentProtection.info("received response message contains NO content protection!");
 		}
 		return generalPKIMessage;
 	}
