@@ -53,11 +53,11 @@
 
 		<maven-javadoc-plugin.version>3.4.1</maven-javadoc-plugin.version>
 		<maven-checkstyle.version>3.2.0</maven-checkstyle.version>
-		<checkstyle.version>10.3.3</checkstyle.version>
+		<checkstyle.version>10.3.4</checkstyle.version>
 		<spring-nohttp-checkstyle.version>0.0.4.RELEASE</spring-nohttp-checkstyle.version>
 
-		<slf4j.version>2.0.1</slf4j.version>
-		<logback.version>1.4.1</logback.version>
+		<slf4j.version>2.0.3</slf4j.version>
+		<logback.version>1.4.3</logback.version>
 		
 		<junit.version>4.13.2</junit.version>
 
@@ -65,7 +65,7 @@
     	<license.inceptionYear>2016</license.inceptionYear>
     	<license.organizationName>Andreas Kuehne</license.organizationName>
 
-		<dependencyCheck.version>7.2.0</dependencyCheck.version>
+		<dependencyCheck.version>7.2.1</dependencyCheck.version>
         <dependencyCheck.skip>false</dependencyCheck.skip>
     	
 	</properties>
