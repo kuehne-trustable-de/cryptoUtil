@@ -327,7 +327,7 @@ public class CryptoUtil {
 	 */
   	public PKCS10CertificationRequest convertPemToPKCS10CertificationRequest(final String pem) throws GeneralSecurityException {
 
-        PKCS10CertificationRequest csr = null;
+        PKCS10CertificationRequest csr;
         ByteArrayInputStream pemStream;
 		pemStream = new ByteArrayInputStream(pem.getBytes(StandardCharsets.UTF_8));
 
@@ -345,8 +345,9 @@ public class CryptoUtil {
             
             if (parsedObj instanceof PKCS10CertificationRequest) {
                 csr = (PKCS10CertificationRequest) parsedObj;
-
-            }
+            }else{
+				throw new GeneralSecurityException("Parsing of CSR failed! Unexpected conte of type: " + parsedObj.getClass().getName());
+			}
         } catch (IOException ex) {
           	LOGGER.error("IOException, convertPemToPublicKey", ex);
       		throw new GeneralSecurityException("Parsing of CSR failed! Not PEM encoded?");
