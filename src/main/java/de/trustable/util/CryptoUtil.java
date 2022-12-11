@@ -346,7 +346,7 @@ public class CryptoUtil {
             if (parsedObj instanceof PKCS10CertificationRequest) {
                 csr = (PKCS10CertificationRequest) parsedObj;
             }else{
-				throw new GeneralSecurityException("Parsing of CSR failed! Unexpected conte of type: " + parsedObj.getClass().getName());
+				throw new GeneralSecurityException("Parsing of CSR failed! Unexpected content of type: " + parsedObj.getClass().getName());
 			}
         } catch (IOException ex) {
           	LOGGER.error("IOException, convertPemToPublicKey", ex);
