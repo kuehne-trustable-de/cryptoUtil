@@ -65,7 +65,7 @@
     	<license.inceptionYear>2016</license.inceptionYear>
     	<license.organizationName>Andreas Kuehne</license.organizationName>
 
-		<dependencyCheck.version>7.4.1</dependencyCheck.version>
+		<dependencyCheck.version>7.4.2</dependencyCheck.version>
         <dependencyCheck.skip>false</dependencyCheck.skip>
     	
 	</properties>
