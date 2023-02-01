@@ -6,7 +6,7 @@
 	
 	<groupId>de.trustable</groupId>
 	<artifactId>cryptoUtil</artifactId>
-	<version>1.3.10</version>
+	<version>1.3.11</version>
 	
 	<name>cryptoUtil</name>
     <description>Crypto Utils</description>
@@ -45,7 +45,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
-		<bouncyCastleVersion>1.72</bouncyCastleVersion>
+		<bouncyCastle.version>1.72</bouncyCastle.version>
 		<cryptacularVersion>1.2.5</cryptacularVersion>
 		<jasyptVersion>1.9.3</jasyptVersion>
 		<commonsCodecVersion>1.15</commonsCodecVersion>
@@ -81,7 +81,7 @@
 		<dependency>
 			<groupId>org.bouncycastle</groupId>
 			<artifactId>bcpkix-jdk18on</artifactId>
-			<version>${bouncyCastleVersion}</version>
+			<version>${bouncyCastle.version}</version>
 			<scope>compile</scope>
 		</dependency>
 

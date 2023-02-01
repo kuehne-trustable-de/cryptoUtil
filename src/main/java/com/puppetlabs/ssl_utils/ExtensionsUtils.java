@@ -367,7 +367,7 @@ public class ExtensionsUtils {
 
                 if (extObj instanceof Extensions) {
                     return (Extensions)extObj;
-                } else if (extObj instanceof DERSequence) {
+                } else if (extObj instanceof ASN1Sequence || extObj instanceof ASN1Set) {
                     return Extensions.getInstance(extObj);
                 }
             }
