@@ -3103,6 +3103,8 @@ public class OidNameMapper {
 
     insertMap("1 3 101 1 4 1", "strongExtranet");
 
+    insertMap("1 3 101 112", "ed25519");
+
     insertMap("1 3 132 0 1", "sect163k1");
 
     insertMap("1 3 132 0 2", "sect163r1");

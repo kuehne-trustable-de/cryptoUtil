@@ -32,6 +32,8 @@ public class Pkcs10RequestHolder {
 
     private String publicKeyAlgorithmName;
 
+    private String publicKeyAlgorithmShortName;
+
     private String publicKeyHash;
 
     private String subjectPublicKeyInfoBase64;
@@ -127,6 +129,14 @@ public class Pkcs10RequestHolder {
 
     public void setPublicKeyAlgorithmName(String publicKeyAlgorithmName) {
         this.publicKeyAlgorithmName = publicKeyAlgorithmName;
+    }
+
+    public String getPublicKeyAlgorithmShortName() {
+        return publicKeyAlgorithmShortName;
+    }
+
+    public void setPublicKeyAlgorithmShortName(String publicKeyAlgorithmShortName) {
+        this.publicKeyAlgorithmShortName = publicKeyAlgorithmShortName;
     }
 
     public String getSigningAlgorithmName() {

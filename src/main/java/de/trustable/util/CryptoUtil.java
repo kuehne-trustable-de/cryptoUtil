@@ -187,6 +187,7 @@ public class CryptoUtil {
 
 			reqHolder.setPublicKeyAlgorithm(keyAlg.getAlgorithm().getId());
 			reqHolder.setPublicKeyAlgorithmName(OidNameMapper.lookupOid(keyAlg.getAlgorithm().getId()));
+			reqHolder.setPublicKeyAlgorithmShortName(AlgorithmInfo.getSigAlgoShortName(reqHolder.getPublicKeyAlgorithmName()));
 
 			publicKey = KeyFactory.getInstance(keyAlg.getAlgorithm().getId(), "BC").generatePublic(xspec);
 
@@ -1775,7 +1776,5 @@ public class CryptoUtil {
 		}
 		return generalPKIMessage;
 	}
-
-
 
 }

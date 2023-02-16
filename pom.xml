@@ -6,7 +6,7 @@
 	
 	<groupId>de.trustable</groupId>
 	<artifactId>cryptoUtil</artifactId>
-	<version>1.3.11</version>
+	<version>1.3.12</version>
 	
 	<name>cryptoUtil</name>
     <description>Crypto Utils</description>
@@ -66,7 +66,7 @@
     	<license.organizationName>Andreas Kuehne</license.organizationName>
 
 		<dependencyCheck.version>8.1.0</dependencyCheck.version>
-        <dependencyCheck.skip>true</dependencyCheck.skip>
+        <dependencyCheck.skip>false</dependencyCheck.skip>
     	
 	</properties>
 

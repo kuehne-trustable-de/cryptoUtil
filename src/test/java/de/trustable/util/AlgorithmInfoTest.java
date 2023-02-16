@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Security;
 
+import static org.junit.Assert.assertEquals;
+
 
 public class AlgorithmInfoTest {
 
@@ -66,8 +68,24 @@ public class AlgorithmInfoTest {
     "RtVncG0Tnfq7TLvSxe9OiQ==\n"+
     "-----END CERTIFICATE REQUEST-----";
 
+    static final String ECDSA256_CSR = "-----BEGIN CERTIFICATE REQUEST-----\n" +
+    "MIHXMH8CAQAwHTEbMBkGA1UEAwwSZWNkc2EudHJ1c3RhYmxlLmRlMFkwEwYHKoZI\n" +
+    "zj0CAQYIKoZIzj0DAQcDQgAERPk9GfnKXnXIo+NUSP9vZuaQgg+47vwjQPLvxIIe\n" +
+    "ZTznghPY8KwjRa8Iqoybn7TOu+D/kAoOeKFv3WiDE6Avx6AAMAoGCCqGSM49BAMC\n" +
+    "A0gAMEUCIEgdxXviUEyN45J+2xoYr4h/My5uo1a9xsqXD0CkWe1LAiEA47Rgm3dD\n" +
+    "8ZIlGI/P8rCi0SxcEO2DLhUoCPtKnuFrN6g=\n" +
+    "-----END CERTIFICATE REQUEST-----";
+
+    static final String ED25519_CSR = "-----BEGIN CERTIFICATE REQUEST-----\n" +
+    "MIGeMFICAQAwHzEdMBsGA1UEAwwUZWQyNTUxOS50cnVzdGFibGUuZGUwKjAFBgMr\n" +
+    "ZXADIQDJUq95+nHGgOjXszsLWHh23JlOLaQvIYYMoqj3+bwevKAAMAUGAytlcANB\n" +
+    "ADQRHsZmIz5OyGNB11Gd/f/adhlxB5Y6hgw8P99jxB/dquqPs7tSriE0oPxZXgEb\n" +
+    "JdPLBsVEVFAWs6zt+QNzSwY=\n" +
+    "-----END CERTIFICATE REQUEST-----";
+
+
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         Security.addProvider(new BouncyCastleProvider());
     }
 
@@ -77,6 +95,9 @@ public class AlgorithmInfoTest {
         CryptoUtil cryptoUtil = new CryptoUtil();
 
         Pkcs10RequestHolder p10ReqHolder = cryptoUtil.parseCertificateRequest(cryptoUtil.convertPemToPKCS10CertificationRequest(PKCS1_CSR));
+
+        assertEquals("rsa", p10ReqHolder.getPublicKeyAlgorithmShortName());
+
         AlgorithmInfo algorithmInfo = new AlgorithmInfo(p10ReqHolder.getSigningAlgorithmName());
 
         System.out.println("input name        : " + p10ReqHolder.getSigningAlgorithmName());
@@ -85,6 +106,89 @@ public class AlgorithmInfoTest {
         System.out.println("HashAlgName       : " + OidNameMapper.lookupOid(algorithmInfo.getHashAlgName()));
         System.out.println("PaddingAlgName    : " + algorithmInfo.getPaddingAlgName());
         System.out.println("SigAlgFriendlyName: " + algorithmInfo.getSigAlgFriendlyName());
+
+        assertEquals("sha256WithRSAEncryption", p10ReqHolder.getSigningAlgorithmName());
+        assertEquals("rsa", algorithmInfo.getSigAlgName());
+        assertEquals("rsa", algorithmInfo.getSigAlgFriendlyName());
+        assertEquals("sha-256", algorithmInfo.getHashAlgName());
+        assertEquals("PKCS1", algorithmInfo.getPaddingAlgName());
+
+    }
+
+    @Test
+    public void getSigAlgPSS() throws GeneralSecurityException, IOException {
+
+        CryptoUtil cryptoUtil = new CryptoUtil();
+
+        Pkcs10RequestHolder p10ReqHolder = cryptoUtil.parseCertificateRequest(cryptoUtil.convertPemToPKCS10CertificationRequest(PSS_CSR));
+
+        assertEquals("rsa", p10ReqHolder.getPublicKeyAlgorithmShortName());
+
+        AlgorithmInfo algorithmInfo = new AlgorithmInfo(p10ReqHolder.getSigningAlgorithmName());
+
+        System.out.println("input name        : " + p10ReqHolder.getSigningAlgorithmName());
+        System.out.println("SigAlgName        : " + algorithmInfo.getSigAlgName());
+        System.out.println("HashAlgName       : " + algorithmInfo.getHashAlgName());
+        System.out.println("HashAlgName       : " + OidNameMapper.lookupOid(algorithmInfo.getHashAlgName()));
+        System.out.println("PaddingAlgName    : " + algorithmInfo.getPaddingAlgName());
+        System.out.println("SigAlgFriendlyName: " + algorithmInfo.getSigAlgFriendlyName());
+
+        assertEquals("rsaPSS", p10ReqHolder.getSigningAlgorithmName());
+        assertEquals("rsa", algorithmInfo.getSigAlgName());
+        assertEquals("rsa", algorithmInfo.getSigAlgFriendlyName());
+        assertEquals("", algorithmInfo.getHashAlgName());
+        assertEquals("pss", algorithmInfo.getPaddingAlgName());
+
+    }
+
+    @Test
+    public void getSigAlgECDSA() throws GeneralSecurityException, IOException {
+
+        CryptoUtil cryptoUtil = new CryptoUtil();
+
+        Pkcs10RequestHolder p10ReqHolder = cryptoUtil.parseCertificateRequest(cryptoUtil.convertPemToPKCS10CertificationRequest(ECDSA256_CSR));
+        assertEquals("ecdsa", p10ReqHolder.getPublicKeyAlgorithmShortName());
+
+        AlgorithmInfo algorithmInfo = new AlgorithmInfo(p10ReqHolder.getSigningAlgorithmName());
+
+        System.out.println("input name        : " + p10ReqHolder.getSigningAlgorithmName());
+        System.out.println("SigAlgName        : " + algorithmInfo.getSigAlgName());
+        System.out.println("HashAlgName       : " + algorithmInfo.getHashAlgName());
+        System.out.println("HashAlgName       : " + OidNameMapper.lookupOid(algorithmInfo.getHashAlgName()));
+        System.out.println("PaddingAlgName    : " + algorithmInfo.getPaddingAlgName());
+        System.out.println("SigAlgFriendlyName: " + algorithmInfo.getSigAlgFriendlyName());
+
+        assertEquals("ecdsaWithSHA256", p10ReqHolder.getSigningAlgorithmName());
+        assertEquals("ecdsa", algorithmInfo.getSigAlgName());
+        assertEquals("ecdsa", algorithmInfo.getSigAlgFriendlyName());
+        assertEquals("sha-256", algorithmInfo.getHashAlgName());
+        assertEquals("PKCS1", algorithmInfo.getPaddingAlgName());
+
+    }
+
+
+    @Test
+    public void getSigAlgED25519() throws GeneralSecurityException, IOException {
+
+        CryptoUtil cryptoUtil = new CryptoUtil();
+
+        Pkcs10RequestHolder p10ReqHolder = cryptoUtil.parseCertificateRequest(cryptoUtil.convertPemToPKCS10CertificationRequest(ED25519_CSR));
+        assertEquals("ed25519", p10ReqHolder.getPublicKeyAlgorithmShortName());
+
+        AlgorithmInfo algorithmInfo = new AlgorithmInfo(p10ReqHolder.getSigningAlgorithmName());
+
+        System.out.println("input name        : " + p10ReqHolder.getSigningAlgorithmName());
+        System.out.println("SigAlgName        : " + algorithmInfo.getSigAlgName());
+        System.out.println("HashAlgName       : " + algorithmInfo.getHashAlgName());
+        System.out.println("HashAlgName       : " + OidNameMapper.lookupOid(algorithmInfo.getHashAlgName()));
+        System.out.println("PaddingAlgName    : " + algorithmInfo.getPaddingAlgName());
+        System.out.println("SigAlgFriendlyName: " + algorithmInfo.getSigAlgFriendlyName());
+
+        assertEquals("ed25519", p10ReqHolder.getSigningAlgorithmName());
+        assertEquals("ed25519", algorithmInfo.getSigAlgName());
+        assertEquals("ed25519", algorithmInfo.getSigAlgFriendlyName());
+        assertEquals("sha-256", algorithmInfo.getHashAlgName());
+        assertEquals("PKCS1", algorithmInfo.getPaddingAlgName());
 
     }
 

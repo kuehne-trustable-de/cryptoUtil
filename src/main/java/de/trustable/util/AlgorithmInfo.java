@@ -3,6 +3,7 @@ package de.trustable.util;
 import org.bouncycastle.asn1.pkcs.RSASSAPSSparams;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class AlgorithmInfo {
@@ -23,16 +24,28 @@ public class AlgorithmInfo {
     static Map<String,String> signingAlgoToNormalizedName = new HashMap<>();
     static {
         signingAlgoToNormalizedName.put("rsaencryption", "rsa");
+        signingAlgoToNormalizedName.put("ecpublickey", "ecdsa");
     }
 
     public AlgorithmInfo(final String algoNames){
 
         // extract signature algo
         sigAlgName = OidNameMapper.lookupOid(algoNames).toLowerCase();
-        if (sigAlgName.contains("with")) {
+
+        if( sigAlgName.equals("ed25519")) {
+            hashAlgName = "sha-256";
+            sigAlgName = "ed25519";
+        }else if( sigAlgName.contains("withrsaencryption")) {
+                String[] parts = sigAlgName.split("with");
+                hashAlgName = parts[0];
+                if (hashToNormalizedName.containsKey(hashAlgName)) {
+                    hashAlgName = hashToNormalizedName.get(hashAlgName);
+                }
+                sigAlgName = "rsa";
+        }else if (sigAlgName.contains("with")) {
             String[] parts = sigAlgName.split("with");
             if (parts.length > 1) {
-                hashAlgName = parts[0];
+                hashAlgName = parts[1];
                 if(hashToNormalizedName.containsKey(hashAlgName)){
                     hashAlgName = hashToNormalizedName.get(hashAlgName);
                 }
@@ -43,12 +56,13 @@ public class AlgorithmInfo {
                         paddingAlgName = parts2[1];
                     }
                 } else {
-                    sigAlgName = parts[1];
-                    if(signingAlgoToNormalizedName.containsKey(sigAlgName)){
-                        sigAlgName = signingAlgoToNormalizedName.get(sigAlgName);
-                    }
+                    sigAlgName = getSigAlgoShortName(parts[0]);
                 }
             }
+        }else if (sigAlgName.equals("rsapss")){
+            sigAlgName = "rsa";
+            hashAlgName = "";
+            paddingAlgName = "pss";
         }
     }
 
@@ -81,4 +95,12 @@ public class AlgorithmInfo {
     public String getMfgName() {
         return mfgName;
     }
+
+    static String getSigAlgoShortName(String sigAlgName) {
+        if(signingAlgoToNormalizedName.containsKey(sigAlgName.toLowerCase(Locale.ROOT))) {
+            return signingAlgoToNormalizedName.get(sigAlgName.toLowerCase(Locale.ROOT));
+        }
+        return sigAlgName;
+    }
+
 }
