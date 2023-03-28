@@ -949,8 +949,9 @@ public class CryptoUtil {
 	public PKMACBuilder getMacCalculatorBuilder() throws CRMFException {
 
 		JcePKMACValuesCalculator jcePkmacCalc = new JcePKMACValuesCalculator();
-		final AlgorithmIdentifier digAlg = new AlgorithmIdentifier(new ASN1ObjectIdentifier("1.3.14.3.2.26")); // SHA1
-		final AlgorithmIdentifier macAlg = new AlgorithmIdentifier(new ASN1ObjectIdentifier("1.2.840.113549.2.7")); // HMAC/SHA1
+		final AlgorithmIdentifier digAlg = new AlgorithmIdentifier(new ASN1ObjectIdentifier("2.16.840.1.101.3.4.2.1")); // SHA256
+		final AlgorithmIdentifier macAlg = new AlgorithmIdentifier(new ASN1ObjectIdentifier("1.2.840.113549.2.9")); // HMAC/SHA256
+		LOGGER.debug("instantiating MacCalculatorBuilder for : {} ( {}", digAlg, macAlg );
 		jcePkmacCalc.setup(digAlg, macAlg);
 		return new PKMACBuilder(jcePkmacCalc);
 	}
@@ -1756,6 +1757,9 @@ public class CryptoUtil {
 
 	private GeneralPKIMessage buildPKIMessage(byte[] responseBytes, final String plainSecret) throws IOException,  GeneralSecurityException {
 
+		if( LOGGER.isDebugEnabled()){
+			LOGGER.debug( "response Bytes : " + Base64.toBase64String( responseBytes ));
+		}
 
 		GeneralPKIMessage generalPKIMessage = new GeneralPKIMessage(responseBytes);
 		printPKIMessageInfo(generalPKIMessage);

@@ -35,7 +35,7 @@ public class AlgorithmInfo {
         if( sigAlgName.equals("ed25519")) {
             hashAlgName = "sha-256";
             sigAlgName = "ed25519";
-        }else if( sigAlgName.contains("withrsaencryption")) {
+        }else if( sigAlgName.contains("withrsa")) {
                 String[] parts = sigAlgName.split("with");
                 hashAlgName = parts[0];
                 if (hashToNormalizedName.containsKey(hashAlgName)) {
