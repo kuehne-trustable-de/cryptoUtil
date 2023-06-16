@@ -45,7 +45,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
-		<bouncyCastle.version>1.73</bouncyCastle.version>
+		<bouncyCastle.version>1.74</bouncyCastle.version>
 		<cryptacularVersion>1.2.5</cryptacularVersion>
 		<jasyptVersion>1.9.3</jasyptVersion>
 		<commonsCodecVersion>1.15</commonsCodecVersion>
@@ -53,11 +53,11 @@
 
 		<maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
 		<maven-checkstyle.version>3.3.0</maven-checkstyle.version>
-		<checkstyle.version>10.11.0</checkstyle.version>
+		<checkstyle.version>10.12.0</checkstyle.version>
 		<spring-nohttp-checkstyle.version>0.0.4.RELEASE</spring-nohttp-checkstyle.version>
 
 		<slf4j.version>2.0.7</slf4j.version>
-		<logback.version>1.4.7</logback.version>
+		<logback.version>1.4.8</logback.version>
 		
 		<junit.version>4.13.2</junit.version>
 
@@ -65,7 +65,7 @@
     	<license.inceptionYear>2016</license.inceptionYear>
     	<license.organizationName>Andreas Kuehne</license.organizationName>
 
-		<dependencyCheck.version>8.2.1</dependencyCheck.version>
+		<dependencyCheck.version>8.3.1</dependencyCheck.version>
         <dependencyCheck.skip>true</dependencyCheck.skip>
     	
 	</properties>
