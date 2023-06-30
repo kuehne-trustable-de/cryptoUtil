@@ -4538,5 +4538,124 @@ public class OidNameMapper {
 
     insertMap("2 16 840 1 114171 500 9", "Wells Fargo EV policy");
 
+    String BC = "1 3 6 1 4 1 22554";
+    String BC_SIG = BC + " 2";
+
+    /*
+     * Sphincs-256
+     */
+    insertMap( BC_SIG + " 1", "sphincs256");
+    insertMap( BC_SIG + " 1 1", "sphincs256_with_BLAKE512");
+    insertMap( BC_SIG + " 1 2", "sphincs256_with_SHA512");
+    insertMap( BC_SIG + " 1 3", "sphincs256_with_SHA3_512");
+
+    /*
+     * XMSS
+     */
+    insertMap(BC_SIG + " 2", "xmss");
+    insertMap(BC_SIG + " 2 1", "xmss_SHA256ph");
+    insertMap(BC_SIG + " 2 2", "xmss_SHA512ph");
+    insertMap(BC_SIG + " 2 3", "xmss_SHAKE128ph");
+    insertMap(BC_SIG + " 2 4", "xmss_SHAKE256ph");
+    insertMap(BC_SIG + " 2 5", "xmss_SHA256");
+    insertMap(BC_SIG + " 2 6", "xmss_SHA512");
+    insertMap(BC_SIG + " 2 7", " xmss_SHAKE128");
+    insertMap(BC_SIG + " 2 8", "xmss_SHAKE256");
+
+    /*
+     * XMSS^MT
+     */
+    insertMap(BC_SIG + " 3", "xmss_mt");
+    insertMap(BC_SIG + " 3 1", "xmss_mt_SHA256ph");
+    insertMap(BC_SIG + " 3 2", "xmss_mt_SHA512ph");
+    insertMap(BC_SIG + " 3 3", "xmss_mt_SHAKE128ph");
+    insertMap(BC_SIG + " 3 4", "xmss_mt_SHAKE256ph");
+    insertMap(BC_SIG + " 3 5", "xmss_mt_SHA256");
+    insertMap(BC_SIG + " 3 6", "xmss_mt_SHA512");
+    insertMap(BC_SIG + " 3 7", "xmss_mt_SHAKE128");
+    insertMap(BC_SIG + " 3 8", "xmss_mt_SHAKE256");
+
+    /*
+     * qTESLA
+     */
+    insertMap(BC_SIG + " 4", "qTESLA");
+    insertMap(BC_SIG + " 4 1", "qTESLA_Rnd1_I");
+    insertMap(BC_SIG + " 4 2", "qTESLA_Rnd1_III_size");
+    insertMap(BC_SIG + " 4 3", "qTESLA_Rnd1_III_speed");
+    insertMap(BC_SIG + " 4 4", "qTESLA_Rnd1_p_I");
+    insertMap(BC_SIG + " 4 5", "qTESLA_Rnd1_p_III");
+
+    insertMap(BC_SIG + " 4 11", "qTESLA_p_I");
+    insertMap(BC_SIG + " 4 12", "qTESLA_p_III");
+
+    /*
+     * SPHINCS+
+     */
+    insertMap(BC_SIG + " 5", "sphincsPlus");
+    insertMap(BC_SIG + " 5 1", "sphincsPlus_sha2_128s_r3");
+    insertMap(BC_SIG + " 5 2", "sphincsPlus_sha2_128f_r3");
+    insertMap(BC_SIG + " 5 3", "sphincsPlus_shake_128s_r3");
+    insertMap(BC_SIG + " 5 4", "sphincsPlus_shake_128f_r3");
+    insertMap(BC_SIG + " 5 5", "sphincsPlus_haraka_128s_r3");
+    insertMap(BC_SIG + " 5 6", "sphincsPlus_haraka_128f_r3");
+    insertMap(BC_SIG + " 5 7", "sphincsPlus_sha2_192s_r3");
+    insertMap(BC_SIG + " 5 8", "sphincsPlus_sha2_192f_r3");
+    insertMap(BC_SIG + " 5 9", "sphincsPlus_shake_192s_r3");
+    insertMap(BC_SIG + " 5 10", "sphincsPlus_shake_192f_r3");
+    insertMap(BC_SIG + " 5 11", "sphincsPlus_haraka_192s_r3");
+    insertMap(BC_SIG + " 5 12", "sphincsPlus_haraka_192f_r3");
+    insertMap(BC_SIG + " 5 13", "sphincsPlus_sha2_256s_r3");
+    insertMap(BC_SIG + " 5 14", "sphincsPlus_sha2_256f_r3");
+    insertMap(BC_SIG + " 5 15", "sphincsPlus_shake_256s_r3");
+    insertMap(BC_SIG + " 5 16", "sphincsPlus_shake_256f_r3");
+    insertMap(BC_SIG + " 5 17", "sphincsPlus_haraka_256s_r3");
+    insertMap(BC_SIG + " 5 18", "sphincsPlus_haraka_256f_r3");
+
+    /*
+     * Picnic
+     */
+    insertMap(BC_SIG + " 6", "picnic");
+    insertMap(BC_SIG + " 6 1", "picnic_key");
+    insertMap(BC_SIG + " 6 1 1", "picnicl1fs");
+    insertMap(BC_SIG + " 6 1 2", "picnicl1ur");
+    insertMap(BC_SIG + " 6 1 3", "picnicl3fs");
+    insertMap(BC_SIG + " 6 1 4", "picnicl3ur");
+    insertMap(BC_SIG + " 6 1 5", "picnicl5fs");
+    insertMap(BC_SIG + " 6 1 6", "picnicl5ur");
+    insertMap(BC_SIG + " 6 1 7", "picnic3l1");
+    insertMap(BC_SIG + " 6 1 8", "picnic3l3");
+    insertMap(BC_SIG + " 6 1 9", "picnic3l5");
+    insertMap(BC_SIG + " 6 1 10", "picnicl1full");
+    insertMap(BC_SIG + " 6 1 11", "picnicl3full");
+    insertMap(BC_SIG + " 6 1 12", "picnicl5full");
+
+    insertMap(BC_SIG + " 6 2", "picnic_signature");
+    insertMap(BC_SIG + " 6 2 1", "picnic_with_sha512");
+    insertMap(BC_SIG + " 6 2 2", "picnic_with_shake256");
+    insertMap(BC_SIG + " 6 2 3", "picnic_with_sha3_512");
+
+
+    /*
+     * Falcon
+     */
+    insertMap(BC_SIG + " 7", "falcon");
+
+    insertMap("1 3 9999 3 1", "falcon_512");
+    insertMap("1 3 9999 3 1", "falcon_1024");
+
+    /*
+     * Dilithium
+     */
+    insertMap(BC_SIG + " 8", "dilithium");
+
+    // OpenSSL OIDs
+    insertMap("1 3 6 1 4 1 2 267 7 4 4", "dilithium2");
+    insertMap("1 3 6 1 4 1 2 267 7 6 5", "dilithium3");
+    insertMap("1 3 6 1 4 1 2 267 7 8 7", "dilithium5");
+
+    insertMap("1 3 6 1 4 1 2 267 11 4 4", "dilithium2_aes");
+    insertMap("1 3 6 1 4 1 2 267 11 6 5", "dilithium3_aes");
+    insertMap("1 3 6 1 4 1 2 267 11 8 7", "dilithium5_aes");
+
   }
 }
