@@ -1,37 +1,12 @@
 package com.puppetlabs.ssl_utils;
 
-import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1Object;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.ASN1OctetString;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.ASN1Set;
-import org.bouncycastle.asn1.ASN1String;
-import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.DERBitString;
-import org.bouncycastle.asn1.DERIA5String;
-import org.bouncycastle.asn1.DEROctetString;
-import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.DERUTF8String;
+import org.bouncycastle.asn1.*;
 import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
-import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.CRLNumber;
-import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
-import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.asn1.x509.Extensions;
-import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.GeneralNames;
-import org.bouncycastle.asn1.x509.KeyPurposeId;
-import org.bouncycastle.asn1.x509.KeyUsage;
-import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509ExtensionUtils;
@@ -45,7 +20,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.PublicKey;
@@ -53,17 +27,10 @@ import java.security.cert.CRLException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Utilities for working with X509 extensions.
- * 
  * Copied from https://github.com/puppetlabs/jvm-ssl-utils due to package-only visibility of useful methods.
  * 
  * Original license is Apache License Version 2.0
@@ -621,7 +588,7 @@ public class ExtensionsUtils {
             return bitString.getString();
         } else if (asn1Prim instanceof ASN1TaggedObject) {
             ASN1TaggedObject taggedObj = (ASN1TaggedObject)asn1Prim;
-            return asn1ObjToObj(taggedObj.getObject());
+            return asn1ObjToObj(taggedObj.	parseExplicitBaseObject());
         } else if (asn1Prim instanceof ASN1Sequence) {
             return asn1SeqToList((ASN1Sequence) asn1Prim);
         } else if (asn1Prim instanceof ASN1String) {
