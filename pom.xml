@@ -6,7 +6,7 @@
 	
 	<groupId>de.trustable</groupId>
 	<artifactId>cryptoUtil</artifactId>
-	<version>1.3.17</version>
+	<version>1.3.18</version>
 	
 	<name>cryptoUtil</name>
     <description>Crypto Utils</description>

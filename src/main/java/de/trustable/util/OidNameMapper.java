@@ -4640,8 +4640,8 @@ public class OidNameMapper {
      */
     insertMap(BC_SIG + " 7", "falcon");
 
-    insertMap("1 3 9999 3 1", "falcon_512");
-    insertMap("1 3 9999 3 1", "falcon_1024");
+    insertMap("1 3 9999 3 1", "falcon-512");
+    insertMap("1 3 9999 3 1", "falcon-1024");
 
     /*
      * Dilithium
