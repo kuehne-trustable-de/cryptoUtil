@@ -162,7 +162,7 @@ public class AlgorithmInfoTest {
         assertEquals("ecdsa", algorithmInfo.getSigAlgName());
         assertEquals("ecdsa", algorithmInfo.getSigAlgFriendlyName());
         assertEquals("sha-256", algorithmInfo.getHashAlgName());
-        assertEquals("PKCS1", algorithmInfo.getPaddingAlgName());
+        assertEquals("", algorithmInfo.getPaddingAlgName());
 
     }
 
@@ -188,7 +188,7 @@ public class AlgorithmInfoTest {
         assertEquals("ed25519", algorithmInfo.getSigAlgName());
         assertEquals("ed25519", algorithmInfo.getSigAlgFriendlyName());
         assertEquals("sha-256", algorithmInfo.getHashAlgName());
-        assertEquals("PKCS1", algorithmInfo.getPaddingAlgName());
+        assertEquals("", algorithmInfo.getPaddingAlgName());
 
     }
 

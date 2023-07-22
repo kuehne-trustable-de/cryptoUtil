@@ -1,6 +1,8 @@
 package de.trustable.util;
 
 import org.bouncycastle.asn1.pkcs.RSASSAPSSparams;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -8,9 +10,11 @@ import java.util.Map;
 
 public class AlgorithmInfo {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(AlgorithmInfo.class);
+
     private String sigAlgName ;
-    private String hashAlgName = "undefined";
-    private String paddingAlgName = "PKCS1";
+    private String hashAlgName = "";
+    private String paddingAlgName = "";
     private String mfgName = "";
 
     static Map<String,String> hashToNormalizedName = new HashMap<>();
@@ -42,6 +46,7 @@ public class AlgorithmInfo {
                     hashAlgName = hashToNormalizedName.get(hashAlgName);
                 }
                 sigAlgName = "rsa";
+                paddingAlgName = "PKCS1";
         }else if (sigAlgName.contains("with")) {
             String[] parts = sigAlgName.split("with");
             if (parts.length > 1) {
@@ -63,6 +68,12 @@ public class AlgorithmInfo {
             sigAlgName = "rsa";
             hashAlgName = "";
             paddingAlgName = "pss";
+        }else if (sigAlgName.equals("dilithium2") || sigAlgName.equals("dilithium3") || sigAlgName.equals("dilithium5")){
+            sigAlgName = "dilithium";
+        }else if (sigAlgName.startsWith("falcon")){
+            sigAlgName = "falcon";
+        }else{
+            LOGGER.warn("unrecognized algorithm : {}", algoNames);
         }
     }
 
