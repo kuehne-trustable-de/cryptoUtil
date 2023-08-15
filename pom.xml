@@ -46,7 +46,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 
 		<bouncyCastle.version>1.76</bouncyCastle.version>
-		<cryptacularVersion>1.2.5</cryptacularVersion>
+		<cryptacularVersion>1.2.6</cryptacularVersion>
 		<jasyptVersion>1.9.3</jasyptVersion>
 		<commonsCodecVersion>1.16.0</commonsCodecVersion>
 		<javaxActivation.version>1.1.1</javaxActivation.version>
@@ -57,7 +57,7 @@
 		<spring-nohttp-checkstyle.version>0.0.4.RELEASE</spring-nohttp-checkstyle.version>
 
 		<slf4j.version>2.0.7</slf4j.version>
-		<logback.version>1.4.8</logback.version>
+		<logback.version>1.4.11</logback.version>
 		
 		<junit.version>4.13.2</junit.version>
 
