@@ -64,7 +64,7 @@ public class CryptoPolicy {
             SecretKey skey = keyGen.generateKey();
             byte[] raw = skey.getEncoded();
             SecretKeySpec skeySpec = new SecretKeySpec(raw, "AES");
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            Cipher cipher = Cipher.getInstance("AES/CFB/PKCS5Padding");
            
                 // This usually will throw InvalidKeyException unless the
                 // unlimited jurisdiction policy files are installed. However,
