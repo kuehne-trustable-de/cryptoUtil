@@ -15,10 +15,9 @@ final public class JCAManager {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JCAManager.class);
 
-  // define some 'surely present' cipher algorithm 
-  public static final String DEFAULT_CIPHER_ALGO = "RSA/ECB/PKCS1Padding";
-  public static final String DEFAULT_DSA_CIPHER_ALGO = "DSA/ECB/PKCS1Padding";
-  
+  // define some 'presumably present' cipher algorithm
+  public static final String DEFAULT_CIPHER_ALGO = "RSA/ECB/OAEPWITHSHA-256ANDMGF1PADDING";
+
   
   static{
     JCAManager.getInstance();

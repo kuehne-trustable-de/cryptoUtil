@@ -680,9 +680,9 @@ public class CryptoUtil {
             builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, parsedExts);
         }
 
-        ExtensionsGenerator extensionsGenerator = new ExtensionsGenerator();
 
-        if( sanArray != null) {
+        if( sanArray != null && (sanArray.length > 0) ){
+			ExtensionsGenerator extensionsGenerator = new ExtensionsGenerator();
             GeneralNames subjectAltNames = new GeneralNames(sanArray);
             extensionsGenerator.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
             LOGGER.debug("added #" + sanArray.length + " sans");
@@ -690,9 +690,9 @@ public class CryptoUtil {
             for(GeneralName gn: sanArray) {
                 LOGGER.debug("san :" + gn);
             }
+			builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extensionsGenerator.generate());
         }
         
-        builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, extensionsGenerator.generate());
 
         return builder.build(signer);
 
