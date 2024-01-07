@@ -65,7 +65,7 @@
     	<license.inceptionYear>2016</license.inceptionYear>
     	<license.organizationName>Andreas Kuehne</license.organizationName>
 
-		<dependencyCheck.version>9.0.7</dependencyCheck.version>
+		<dependencyCheck.version>9.0.8</dependencyCheck.version>
         <dependencyCheck.skip>true</dependencyCheck.skip>
 		<!--dependencyCheck.nvdApiKey>dd53205e-6680-45c7-a1cb-6aff151b3481</dependencyCheck.nvdApiKey-->
     	
