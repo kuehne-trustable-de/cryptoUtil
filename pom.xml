@@ -48,7 +48,7 @@
 		<bouncyCastle.version>1.77</bouncyCastle.version>
 		<cryptacularVersion>1.2.6</cryptacularVersion>
 		<jasyptVersion>1.9.3</jasyptVersion>
-		<commonsCodecVersion>1.16.0</commonsCodecVersion>
+		<commonsCodecVersion>1.16.1</commonsCodecVersion>
 		<javaxActivation.version>1.1.1</javaxActivation.version>
 
 		<maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
