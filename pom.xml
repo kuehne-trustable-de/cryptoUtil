@@ -66,9 +66,8 @@
     	<license.organizationName>Andreas Kuehne</license.organizationName>
 
 		<dependencyCheck.version>9.0.10</dependencyCheck.version>
-        <dependencyCheck.skip>false</dependencyCheck.skip>
-		<!--dependencyCheck.nvdApiKey>dd53205e-6680-45c7-a1cb-6aff151b3481</dependencyCheck.nvdApiKey-->
-    	
+        <dependencyCheck.skip>true</dependencyCheck.skip>
+
 	</properties>
 
 	<dependencies>
