@@ -29,7 +29,7 @@ public class AlgorithmInfoTest {
     "hUR9gGswbTxl9mEKLRwIc5iiF9URoJWEZkcOLBoUbIfmxF2Zru/bjelxhOfAJfEz\n" +
     "GTk8INtpFBc3UWwCDjR1BaXMC/zeAtreQ8vMXugsj8HFGJ9LIiMvRDURfVwT8RzH\n" +
     "NEx4v3u8QXicHHjkbU9d9PAN\n" +
-    "-----END CERTIFICATE REQUEST----\n";
+    "-----END CERTIFICATE REQUEST-----\n";
 
     static final String PSS_CSR = "-----BEGIN CERTIFICATE REQUEST-----\n"+
     "MIIGPDCCA/ACAQAwXDESMBAGA1UEBwwJV2llc2JhZGVuMQswCQYDVQQGEwJERTEM\n"+
