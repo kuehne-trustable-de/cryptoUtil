@@ -6,7 +6,7 @@
 	
 	<groupId>de.trustable</groupId>
 	<artifactId>cryptoUtil</artifactId>
-	<version>1.3.25</version>
+	<version>1.3.26</version>
 	
 	<name>cryptoUtil</name>
     <description>Crypto Utils</description>
@@ -171,7 +171,6 @@
                 <artifactId>dependency-check-maven</artifactId>
                 <version>${dependencyCheck.version}</version>
                 <configuration>
-                    <cveValidForHours>12</cveValidForHours>
                     <failBuildOnCVSS>4</failBuildOnCVSS>
                     <outputDirectory>${project.build.directory}/dependency-check</outputDirectory>
                     <format>HTML</format>
