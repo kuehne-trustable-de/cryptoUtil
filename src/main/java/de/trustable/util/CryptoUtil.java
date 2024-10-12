@@ -539,7 +539,7 @@ public class CryptoUtil {
 		}
     }
   
-  String getHashAsBase64( byte[] content ) throws GeneralSecurityException{
+  public String getHashAsBase64( byte[] content ) throws GeneralSecurityException{
     MessageDigest md = MessageDigest.getInstance("SHA-256");
     md.update(content); 
     byte[] digest = md.digest();
