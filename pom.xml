@@ -51,7 +51,7 @@
 		<commonsCodecVersion>1.17.1</commonsCodecVersion>
 		<javaxActivation.version>1.1.1</javaxActivation.version>
 
-		<maven-checkstyle.version>3.5.0</maven-checkstyle.version>
+		<maven-checkstyle.version>3.6.0</maven-checkstyle.version>
 		<maven-javadoc-plugin.version>3.11.1</maven-javadoc-plugin.version>
 		<checkstyle.version>10.20.1</checkstyle.version>
 		<spring-nohttp-checkstyle.version>0.0.4.RELEASE</spring-nohttp-checkstyle.version>
