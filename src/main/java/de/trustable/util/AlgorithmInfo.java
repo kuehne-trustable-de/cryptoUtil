@@ -107,7 +107,7 @@ public class AlgorithmInfo {
         return mfgName;
     }
 
-    static String getSigAlgoShortName(String sigAlgName) {
+    static public String getSigAlgoShortName(String sigAlgName) {
         if(signingAlgoToNormalizedName.containsKey(sigAlgName.toLowerCase(Locale.ROOT))) {
             return signingAlgoToNormalizedName.get(sigAlgName.toLowerCase(Locale.ROOT));
         }
