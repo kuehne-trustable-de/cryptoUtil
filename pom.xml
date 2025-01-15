@@ -45,7 +45,7 @@
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
 
-		<bouncyCastle.version>1.79</bouncyCastle.version>
+		<bouncyCastle.version>1.80</bouncyCastle.version>
 		<cryptacularVersion>1.2.7</cryptacularVersion>
 		<jasyptVersion>1.9.3</jasyptVersion>
 		<commonsCodecVersion>1.17.1</commonsCodecVersion>
