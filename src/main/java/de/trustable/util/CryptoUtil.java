@@ -8,6 +8,7 @@ import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.pkcs.RSASSAPSSparams;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.*;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
@@ -680,12 +681,11 @@ public class CryptoUtil {
             builder.addAttribute(PKCSObjectIdentifiers.pkcs_9_at_extensionRequest, parsedExts);
         }
 
-
         if( sanArray != null && (sanArray.length > 0) ){
 			ExtensionsGenerator extensionsGenerator = new ExtensionsGenerator();
             GeneralNames subjectAltNames = new GeneralNames(sanArray);
             extensionsGenerator.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
-            LOGGER.debug("added #" + sanArray.length + " sans");
+            LOGGER.debug("added #{} sans", sanArray.length);
 
             for(GeneralName gn: sanArray) {
                 LOGGER.debug("san :" + gn);
@@ -1335,9 +1335,10 @@ public class CryptoUtil {
 			}
 		}
 
+		boolean hasCN =  (subject != null) &&  (subject.getRDNs(BCStyle.CN).length > 0);
 		if( subjectAltNames != null) {
-			certBuilder.addExtension(Extension.subjectAlternativeName, false, subjectAltNames);
-			LOGGER.debug("added #" + subjectAltNames.getNames().length + " sans");
+			certBuilder.addExtension(Extension.subjectAlternativeName, !hasCN, subjectAltNames);
+			LOGGER.debug("added #{} sans, critical : {}", subjectAltNames.getNames().length, !hasCN);
 		}
 
 		JcaX509ExtensionUtils x509ExtensionUtils = new JcaX509ExtensionUtils();
