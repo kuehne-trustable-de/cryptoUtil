@@ -6,7 +6,7 @@
 	
 	<groupId>de.trustable</groupId>
 	<artifactId>cryptoUtil</artifactId>
-	<version>1.3.33</version>
+	<version>1.3.36</version>
 	
 	<name>cryptoUtil</name>
     <description>Crypto Utils</description>
@@ -51,8 +51,8 @@
 		<commonsCodecVersion>1.19.0</commonsCodecVersion>
 		<javaxActivation.version>1.1.1</javaxActivation.version>
 
-		<maven-checkstyle.version>3.6.3</maven-checkstyle.version>
-		<checkstyle.version>11.0.1</checkstyle.version>
+		<maven-checkstyle.version>3.6.0</maven-checkstyle.version>
+		<checkstyle.version>10.23.0</checkstyle.version>
 		<maven-javadoc-plugin.version>3.11.3</maven-javadoc-plugin.version>
 		<spring-nohttp-checkstyle.version>0.0.4.RELEASE</spring-nohttp-checkstyle.version>
 
@@ -65,8 +65,10 @@
     	<license.inceptionYear>2016</license.inceptionYear>
     	<license.organizationName>Andreas Kuehne</license.organizationName>
 
+		<maven.autoPublish>false</maven.autoPublish>
+
 		<dependencyCheck.version>12.1.3</dependencyCheck.version>
-        <dependencyCheck.skip>true</dependencyCheck.skip>
+        <dependencyCheck.skip>false</dependencyCheck.skip>
 
 	</properties>
 
@@ -203,43 +205,29 @@
 								<arg>--pinentry-mode</arg>
 								<arg>loopback</arg>
 							</gpgArguments>
-							<skip>true</skip>
+							<skip>false</skip>
 						</configuration>
 					</execution>
 				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.sonatype.central</groupId>
+				<artifactId>central-publishing-maven-plugin</artifactId>
+				<version>0.8.0</version>
+				<extensions>true</extensions>
+				<configuration>
+					<publishingServerId>central</publishingServerId>
+					<autoPublish>${maven.autoPublish}</autoPublish>
+				</configuration>
 			</plugin>
         </plugins>
     </build>
 
 	<repositories>
-		<repository>
-			<id>trustable.eu</id>
-			<url>https://trustable.eu/artifactory/ca3s</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-		</repository>
-		
 	</repositories>
 
 	<distributionManagement>
-		<repository>
-			<uniqueVersion>false</uniqueVersion>
-			<id>trustable.eu</id>
-			<name>trustable Repository</name>
-			<url>https://trustable.eu/artifactory/ca3s</url>
-			<layout>default</layout>
-		</repository>
-		<snapshotRepository>
-			<uniqueVersion>true</uniqueVersion>
-			<id>Snap_trustable.eu</id>
-			<name>trustable Snapshots</name>
-			<url>https://trustable.eu/artifactory/ca3s</url>
-			<layout>default</layout>
-		</snapshotRepository>
 	</distributionManagement>
 
 	<profiles>
