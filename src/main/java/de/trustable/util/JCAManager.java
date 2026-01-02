@@ -57,8 +57,15 @@ final public class JCAManager {
         //**********************************************************************
         // Dynamically register the BC provider.
         //**********************************************************************
-
         java.security.Security.addProvider( new BouncyCastleProvider() );
+
+//      System.setProperty("jdk.tls.namedGroups", "brainpoolP256r1, brainpoolP384r1, brainpoolP512r1, secp256r1, secp384r1");
+//      java.security.Security.setProperty("ssl.KeyManagerFactory.algorithm", "PKIX");
+//      java.security.Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+//      java.security.Security.insertProviderAt(new BouncyCastleProvider(), 1);
+
+//          java.security.Security.removeProvider(BouncyCastleJsseProvider.PROVIDER_NAME);
+//          java.security.Security.insertProviderAt(new BouncyCastleJsseProvider(), 2);
 
         // make sure everything work well with BC
         // seen deferred problems when using the crypto provider

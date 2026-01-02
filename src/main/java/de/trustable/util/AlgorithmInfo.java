@@ -48,20 +48,13 @@ public class AlgorithmInfo {
                 sigAlgName = "rsa";
                 paddingAlgName = "PKCS1";
         }else if (sigAlgName.contains("with")) {
+
             String[] parts = sigAlgName.split("with");
             if (parts.length > 1) {
-                hashAlgName = parts[1];
-                if(hashToNormalizedName.containsKey(hashAlgName)){
-                    hashAlgName = hashToNormalizedName.get(hashAlgName);
-                }
-                if (parts[1].contains("and")) {
-                    String[] parts2 = parts[1].split("and");
-                    sigAlgName = parts2[0];
-                    if (parts2.length > 1) {
-                        paddingAlgName = parts2[1];
-                    }
-                } else {
-                    sigAlgName = getSigAlgoShortName(parts[0]);
+                if(hashToNormalizedName.containsKey(parts[0])) {
+                    handleParts(parts[0], parts[1]);
+                }else{
+                    handleParts(parts[1], parts[0]);
                 }
             }
         }else if (sigAlgName.equals("rsapss")){
@@ -74,6 +67,22 @@ public class AlgorithmInfo {
             sigAlgName = "falcon";
         }else{
             LOGGER.warn("unrecognized algorithm : {}", algoNames);
+        }
+    }
+
+    private void handleParts(final String part0, final String part1) {
+        hashAlgName = part0;
+        if(hashToNormalizedName.containsKey(hashAlgName)){
+            hashAlgName = hashToNormalizedName.get(hashAlgName);
+        }
+        if (part1.contains("and")) {
+            String[] parts2 = part1.split("and");
+            sigAlgName = parts2[0];
+            if (parts2.length > 1) {
+                paddingAlgName = parts2[1];
+            }
+        } else {
+            sigAlgName = getSigAlgoShortName(part1);
         }
     }
 

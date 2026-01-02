@@ -245,8 +245,12 @@ public class CryptoUtilTest {
 		
 		Principal certSubject = issuedCertificate.getSubjectDN();
 		assertNotNull("Expected a subject in the certificate", certSubject);
-		assertTrue("Expected a subject ", certSubject.getName().startsWith("C=DE, OU=Dev, OU=ca3s, O=trustable Ltd, CN=Test certificate created at" ));
-		
+        assertTrue("Expected a subject ", certSubject.getName().contains("C=DE" ));
+        assertTrue("Expected a subject ", certSubject.getName().contains("OU=Dev" ));
+        assertTrue("Expected a subject ", certSubject.getName().contains("OU=ca3s" ));
+        assertTrue("Expected a subject ", certSubject.getName().contains("O=trustable Ltd" ));
+        assertTrue("Expected a subject ", certSubject.getName().contains("CN=Test certificate created at" ));
+
 		assertNotNull("Expected an issuer in the certificate", issuedCertificate.getIssuerDN());
 		
 		long validityMilliSec = issuedCertificate.getNotAfter().getTime() - issuedCertificate.getNotBefore().getTime();

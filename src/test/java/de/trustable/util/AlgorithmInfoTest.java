@@ -166,6 +166,25 @@ public class AlgorithmInfoTest {
 
     }
 
+    @Test
+    public void getSigAlgShaWithECDSA() {
+
+        AlgorithmInfo algorithmInfo = new AlgorithmInfo("SHA384WITHECDSA");
+
+        System.out.println("input name        : 'SHA384WITHECDSA'");
+        System.out.println("SigAlgName        : " + algorithmInfo.getSigAlgName());
+        System.out.println("HashAlgName       : " + algorithmInfo.getHashAlgName());
+        System.out.println("HashAlgName       : " + OidNameMapper.lookupOid(algorithmInfo.getHashAlgName()));
+        System.out.println("PaddingAlgName    : " + algorithmInfo.getPaddingAlgName());
+        System.out.println("SigAlgFriendlyName: " + algorithmInfo.getSigAlgFriendlyName());
+
+        assertEquals("ecdsa", algorithmInfo.getSigAlgName());
+        assertEquals("ecdsa", algorithmInfo.getSigAlgFriendlyName());
+        assertEquals("sha-384", algorithmInfo.getHashAlgName());
+        assertEquals("", algorithmInfo.getPaddingAlgName());
+
+    }
+
 
     @Test
     public void getSigAlgED25519() throws GeneralSecurityException, IOException {
