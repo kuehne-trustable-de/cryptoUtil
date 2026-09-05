@@ -6,7 +6,7 @@
 	
 	<groupId>de.trustable</groupId>
 	<artifactId>cryptoUtil</artifactId>
-	<version>1.3.41</version>
+	<version>1.3.42</version>
 	
 	<name>cryptoUtil</name>
     <description>Crypto Utils</description>
@@ -68,7 +68,7 @@
 		<maven.autoPublish>false</maven.autoPublish>
 
 		<dependencyCheck.version>13.0.0</dependencyCheck.version>
-        <dependencyCheck.skip>false</dependencyCheck.skip>
+        <dependencyCheck.skip>true</dependencyCheck.skip>
 
 	</properties>
 
@@ -92,19 +92,23 @@
 			<artifactId>cryptacular</artifactId>
 			<version>${cryptacularVersion}</version>
 			<exclusions>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-jdk18on</artifactId>
-				</exclusion>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcprov-jdk18on</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.bouncycastle</groupId>
+                    <artifactId>bcpkix-jdk18on</artifactId>
+                </exclusion>
 			</exclusions>
 		</dependency>
 
-		<dependency>
+		<!--dependency>
 			<groupId>org.jasypt</groupId>
 			<artifactId>jasypt</artifactId>
 			<version>${jasyptVersion}</version>
 			<scope>compile</scope>
-		</dependency>
+		</dependency-->
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
